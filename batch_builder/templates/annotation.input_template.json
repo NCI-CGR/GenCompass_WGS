@@ -1,0 +1,36 @@
+{
+    "Annotate.name" : "{{project}}",
+    "Annotate.vcf" : "",
+    "Annotate.annovarDatabases" : [
+        "/fdb/annovar/current/hg38/hg38_clinvar_20230416.txt", "/fdb/annovar/current/hg38/hg38_clinvar_20230416.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_refGene.txt", "/fdb/annovar/current/hg38/hg38_refGeneMrna.fa", "/fdb/annovar/current/hg38/hg38_refGeneVersion.txt", 
+        "/fdb/annovar/current/hg38/hg38_refGeneWithVer.txt", "/fdb/annovar/current/hg38/hg38_refGeneWithVerMrna.fa",
+        "/fdb/annovar/current/hg38/hg38_gnomad312_genome.txt", "/fdb/annovar/current/hg38/hg38_gnomad312_genome.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_cytoBand.txt"
+    ],
+    "Annotate.annovarProtocols": ["refGene","gnomad312_genome","clinvar_20230416","cytoBand"],
+    "Annotate.annovarOperations" : ["g","f","f","r"],
+
+    "Annotate.annovarForIntervarDatabases": [
+        "/fdb/annovar/current/hg38/hg38_refGene.txt", "/fdb/annovar/current/hg38/hg38_refGeneMrna.fa", "/fdb/annovar/current/hg38/hg38_refGeneVersion.txt", 
+        "/fdb/annovar/current/hg38/hg38_refGeneWithVer.txt", "/fdb/annovar/current/hg38/hg38_refGeneWithVerMrna.fa",
+        "/fdb/annovar/current/hg38/hg38_esp6500siv2_all.txt", "/fdb/annovar/current/hg38/hg38_esp6500siv2_all.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_avsnp147.txt", "/fdb/annovar/current/hg38/hg38_avsnp147.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_dbnsfp42a.txt", "/fdb/annovar/current/hg38/hg38_dbnsfp42a.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_gnomad_genome.txt", "/fdb/annovar/current/hg38/hg38_gnomad_genome.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_clinvar_20230416.txt", "/fdb/annovar/current/hg38/hg38_clinvar_20230416.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_dbscsnv11.txt", "/fdb/annovar/current/hg38/hg38_dbscsnv11.txt.idx",
+        "/fdb/annovar/current/hg38/hg38_rmsk.txt",
+        "/fdb/annovar/current/hg38/hg38_ensGeneMrna.fa", "/fdb/annovar/current/hg38/hg38_ensGene.txt",
+        "/fdb/annovar/current/hg38/hg38_knownGeneMrna.fa", "/fdb/annovar/current/hg38/hg38_knownGene.txt", "/fdb/annovar/current/hg38/hg38_kgXref.txt"
+    ],
+    "Annotate.annovarForIntervarProtocols": ["refGene","esp6500siv2_all","avsnp147","dbnsfp42a","clinvar_20230416","gnomad_genome","dbscsnv11","rmsk","ensGene","knownGene"],
+    "Annotate.annovarForIntervarOperations": ["g","f","f","f","f","f","f","r","g","g"],
+
+    "Annotate.Annotate.snpEffDatabase" : "GRCh38.105",
+    "Annotate.Annotate.dbSnpIdTable": "/fdb/GATK_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz",
+
+    "Annotate.annovarDocker" : "cgrlab/annovar",
+    "Annotate.snpEffDocker" : "cgrlab/snpeff",
+    "Annotate.gencompassDocker" : "cgrlab/gencompass:v1.0"
+}

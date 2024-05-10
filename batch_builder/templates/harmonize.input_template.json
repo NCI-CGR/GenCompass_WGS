@@ -1,0 +1,36 @@
+{
+  "Harmonize.project": "{{project}}.{{bin}}",
+
+  "Harmonize.strelka2VCF": "{{results_directory}}/joint_genotype/strelka2/strelka2.{{bin}}.glnexus.bcf.gz",
+  "Harmonize.strelka2VCFIndex": "{{results_directory}}/joint_genotype/strelka2/strelka2.{{bin}}.glnexus.bcf.gz.tbi",
+  "Harmonize.deepvariantVCF": "{{results_directory}}/joint_genotype/deepvariant/deepvariant.{{bin}}.glnexus.bcf.gz",
+  "Harmonize.deepvariantVCFIndex": "{{results_directory}}/joint_genotype/deepvariant/deepvariant.{{bin}}.glnexus.bcf.gz.tbi",
+  "Harmonize.haplotypecallerVCF": "{{results_directory}}/joint_genotype/haplotypecaller/haplotypecaller.{{bin}}.glnexus.bcf.gz",
+  "Harmonize.haplotypecallerVCFIndex": "{{results_directory}}/joint_genotype/haplotypecaller/haplotypecaller.{{bin}}.glnexus.bcf.gz.tbi",
+
+  "Harmonize.referenceTarball": "{{reference_bundle}}/Homo_sapiens_assembly38/Homo_sapiens_assembly38_masked_GRC_exclusions.fasta.tar",
+
+  "Harmonize.labelBlockSize": "-1",
+
+  "Harmonize.labelRuntimeAttributes": {
+    "memoryGiB" : 20,
+    "cpuCount" : 4,
+    "runtimeMinutes": 120
+  },
+  "Harmonize.normalizeRuntimeAttributes": {
+    "memoryGiB" : 20,
+    "cpuCount" : 8,
+    "runtimeMinutes": 120
+  },
+  "Harmonize.mergeBySampleRuntimeAttributes": {
+    "memoryGiB" : 20,
+    "cpuCount" : 4,
+    "runtimeMinutes": 240
+  },
+
+  "Harmonize.mergeByVariantRuntimeAttributes": {
+    "memoryGiB" : 20,
+    "cpuCount" : 4,
+    "runtimeMinutes": 240
+  }
+}

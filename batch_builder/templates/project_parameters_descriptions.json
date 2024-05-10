@@ -1,0 +1,14 @@
+{
+    "project": "Project name.",
+    "manifest": "File. csv/xlsx format. Project manifest file. Columns required: [Sample ID, Sample Run ID, Flowcell]",
+    "fastq_files" : "File. List of fastq file paths",
+    "reference_bundle": "Directory. Path to reference bundle directory",
+    "samples" : "File. List of samples to process. If not present then all samples processed",
+    "results_directory": "Directory. Path to save workflow results to",
+    "logs_directory" :"Directory. Path to save workflow log files to",
+    "working_directory": "Directory where work will be done. Should either be ./ or an absolute path",
+
+    "cromwell_jar": "JAR File. Cromwell JAR file to use",
+    "cromwell_config": "Cromwell Config File. Config to use. Note: config files can be found in GenCompass/config folder",
+    "singularity_cachedir": "/data/$USER/singularity_cache"
+}

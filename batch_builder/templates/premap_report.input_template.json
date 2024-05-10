@@ -1,0 +1,19 @@
+{
+    "PremapReport.manifest" : "{{manifest}}",
+    "PremapReport.project" : "{{project}}",
+    "PremapReport.runFastpReport" : true,
+    "PremapReport.runFastqScreenReport" : true,
+    "PremapReport.runMultiQCReport" : true,
+
+    "PremapReport.includeFastpInMultiQC" : true,
+    "PremapReport.includeFastqScreenInMultiQC" : true,
+    "PremapReport.includeFastqcInMultiQC" : true,
+
+    
+    "PremapReport.sampleList" : "{{samples}}",
+    "PremapReport.workflowResultsDirectory" : "{{results_directory}}",
+    "PremapReport.sampleFastqLocations": "{{fastq_files}}",
+    "PremapReport.sequencingType" : "Illumina",
+    "PremapReport.gencompassDocker" : "cgrlab/gencompass:v1.0",
+    "PremapReport.multiqcDocker": "cgrlab/qctools:v3.2"
+}

@@ -1,0 +1,19 @@
+{
+    "MappingReport.sampleList" : "{{samples}}",
+    "MappingReport.workflowResultsDirectory" : "{{results_directory}}",
+
+    "MappingReport.project" : "{{project}}",
+
+    "MappingReport.runSomalierReport" : true,
+    "MappingReport.runSequencingArtifactReport" : true,
+    "MappingReport.runMultiQCReport" : true,
+    "MappingReport.runParabricksReport" : true,
+    "MappingReport.runVerifyBamIdReport" : true,
+    "MappingReport.runKrakenReport" : true,
+
+    "MappingReport.gencompassDocker" : "cgrlab/gencompass:v1.1",
+    "MappingReport.somalierDocker" : "cgrlab/somalier:v0.2.16",
+    "MappingReport.multiqcDocker" : "cgrlab/qctools:v3.2"
+
+    
+}

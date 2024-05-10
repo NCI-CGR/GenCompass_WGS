@@ -1,0 +1,38 @@
+{
+    "PremapQC.sampleID": "{{sample_id}}",
+    "PremapQC.manifest": "{{manifest}}",
+    "PremapQC.sampleFastqLocations": "{{fastq_files}}",
+    "PremapQC.runFastp": true,
+    "PremapQC.runFastQC": true,
+    "PremapQC.runFastqScreen": true,
+    "PremapQC.runPostFastpQC": false,
+    "PremapQC.fastpOptions": "--qualified_quality_phred 25 --n_base_limit 10 --average_qual 25 --length_required 50 --low_complexity_filter --cut_right --cut_right_window_size 4 --cut_right_mean_quality 15",
+    "PremapQC.gencompassDocker": "cgrlab/gencompass:v1.0",
+    "PremapQC.fastpDocker": "cgrlab/fastp:v0.23.4",
+    "PremapQC.fastqcDocker": "cgrlab/qctools:v3.2",
+    "PremapQC.fastqScreenDocker":"cgrlab/fastq_screen:v0.15.3",
+    "PremapQC.humanTarball": "{{reference_bundle}}/Homo_sapiens_assembly38/Homo_sapiens_assembly38_masked_GRC_exclusions.fasta.tar",
+    "PremapQC.nonhumanTarball": "{{reference_bundle}}/fastq_screen/fasta_nonhuman.tar",
+    "PremapQC.fastqScreenConfig": "{{reference_bundle}}/fastq_screen/fastq_screen.conf",
+
+    "PremapQC.fastpRuntimeAttributes" : {
+        "memoryGiB" : 16,
+        "cpuCount" : 8,
+        "runtimeMinutes": 240
+    },
+    "PremapQC.fastqScreenRuntimeAttributes" : {
+            "memoryGiB" : 32,
+            "cpuCount" : 16,
+            "runtimeMinutes": 240
+    },
+    "PremapQC.fastqcRuntimeAttributes" : {
+            "memoryGiB" : 8,
+            "cpuCount" : 4,
+            "runtimeMinutes": 240
+    },
+    "PremapQC.mergeFastqRuntimeAttributes" : {
+            "memoryGiB" : 8,
+            "cpuCount" : 4,
+            "runtimeMinutes": 240
+    }
+}

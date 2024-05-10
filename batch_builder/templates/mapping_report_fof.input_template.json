@@ -1,0 +1,25 @@
+{
+    "MappingReport.sampleList" : "{{samples}}",
+    "MappingReport.workflowResultsDirectory" : "{{results_directory}}",
+
+    "MappingReport.somalierExtractsFOF" : "",
+    "MappingReport.sequencingArtifactPreAdapterSummaryMetricsFOF" : "",
+    "MappingReport.sequencingArtifactBaitBiasSummaryMetricsFOF" : "",
+    "MappingReport.bammetricsFOF " : "",
+    "MappingReport.collectmultipleMetricsFOF # collectmultiplemetrics .txt files other than sequencing artifact files" : "",
+    "MappingReport.verifybamidFOF # verifybamid self.SM files" : "",
+    "MappingReport.krakenReportFOF # kraken " : "",
+    "MappingReport.krakenOutputFOF" : "",
+
+    "MappingReport.project" : "{project}}",
+    "MappingReport.gencompassDocker" : "cgrlab/gencompass:v1.0",
+    "MappingReport.somalierDocker" : "",
+    "MappingReport.multiqcDocker" : "",
+
+    "MappingReport.runSomalierReport" : true,
+    "MappingReport.runSequencingArtifactReport" : true,
+    "MappingReport.runMultiQCReport" : true,
+    "MappingReport.runParabricksReport" : true,
+    "MappingReport.runVerifyBamIdReport" : true,
+    "MappingReport.runKrakenReport" : true
+}
