@@ -24,15 +24,15 @@ def create_cmm_report(json_filename):
     bias = pd.DataFrame(bias).T.reset_index().rename(columns={'index': 'SampleName'})
     bias = bias[['SampleName', 'AT_DROPOUT', 'GC_DROPOUT']]
 
-    quality_yield = json_data['report_saved_raw_data']['multiqc_picard_QualityYieldMetrics']
-    quality_yield = pd.DataFrame(quality_yield).T.reset_index().rename(columns={'index': 'SampleName'})
-    quality_yield = quality_yield[['SampleName', 'TOTAL_BASES', 'Q20_BASES', 'Q30_BASES']]  
+    # quality_yield = json_data['report_saved_raw_data']['multiqc_picard_QualityYieldMetrics']
+    # quality_yield = pd.DataFrame(quality_yield).T.reset_index().rename(columns={'index': 'SampleName'})
+    # quality_yield = quality_yield[['SampleName', 'TOTAL_BASES', 'Q20_BASES', 'Q30_BASES']]  
 
     cmm_report = (
         pd
             .merge(alignment, insert_size, on='SampleName', how = 'outer')
             .merge(bias, on='SampleName', how = 'outer')
-            .merge(quality_yield, on='SampleName', how = 'outer')
+            # .merge(quality_yield, on='SampleName', how = 'outer')
     )
     return cmm_report
 
@@ -93,14 +93,45 @@ def save_report(cmm_report, bammetrics_report, odir, project):
 
     ]
 
-    bammetrics_column_descriptions = pd.DataFrame(bammetrics_column_descriptions, columns=['Column', 'Description'])
+    cmm_column_descriptions = [
+        ['SampleName',	'Sample name'],
+        ['CATEGORY',	'Forward Read, Reverse Read, or Read Pair (only Pair summary is shown in this report)'],
+        ['TOTAL_READS',	'Total Paired-End Reads (not read pairs)'],
+        ['PF_READS',	"The number of PF reads where PF is defined as passing Illumina's filter (Illumina sequencers perform an internal quality filtering procedure called chastity filter, and reads that pass this filter are called PF for pass-filter. According to Illumina, chastity is defined as the ratio of the brightest base intensity divided by the sum of the brightest and second brightest base intensities. Clusters of reads pass the filter if no more than 1 base call has a chastity value below 0.6 in the first 25 cycles. This filtration process removes the least reliable clusters from the image analysis results)"],
+        ['PCT_PF_READS',	'The fraction of reads that are PF (PF_READS / TOTAL_READS)'],
+        ['PF_NOISE_READS',	'The number of PF reads that are marked as noise reads. A noise read is one which is composed entirely of A bases and/or N bases. These reads are marked as they are usually artifactual and are of no use in downstream analysis.'],
+        ['PF_READS_ALIGNED',	'The number of PF reads that were aligned to the reference sequence. This includes reads that aligned with low quality (i.e. their alignments are ambiguous).'],
+        ['PCT_PF_READS_ALIGNED',	'The percentage of PF reads that aligned to the reference sequence. PF_READS_ALIGNED / PF_READS'],
+        ['PF_ALIGNED_BASES',	'The total number of aligned bases, in all mapped PF reads, that are aligned to the reference sequence.'],
+        ['PF_HQ_ALIGNED_READS',	'The number of PF reads that were aligned to the reference sequence with a mapping quality of Q20 or higher signifying that the aligner estimates a 1/100 (or smaller) chance that the alignment is wrong.'],
+        ['PF_HQ_ALIGNED_BASES',	'The number of bases aligned to the reference sequence in reads that were mapped at high quality. Will usually approximate PF_HQ_ALIGNED_READS * READ_LENGTH but may differ when either mixed read lengths are present or many reads are aligned with gaps.'],
+        ['PF_HQ_ALIGNED_Q20_BASES',	'The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher.'],
+        ['PF_HQ_MEDIAN_MISMATCHES',	'The median number of mismatches versus the reference sequence in reads that were aligned to the reference at high quality (i.e. PF_HQ_ALIGNED READS).'],
+        ['PF_MISMATCH_RATE',	'The rate of bases mismatching the reference for all bases aligned to the reference sequence.'],
+        ['PF_HQ_ERROR_RATE',	'The fraction of bases that mismatch the reference in PF HQ aligned reads.'],
+        ['PF_INDEL_RATE',	'The number of insertion and deletion events per 100 aligned bases. Uses the number of events as the numerator, not the number of inserted or deleted bases.'],
+        ['MEAN_READ_LENGTH',	'The mean read length of the set of reads examined.'],
+        ['READS_ALIGNED_IN_PAIRS',	'The number of aligned reads whose mate pair was also aligned to the reference.'],
+        ['PCT_READS_ALIGNED_IN_PAIRS',	'The fraction of reads whose mate pair was also aligned to the reference. READS_ALIGNED_IN_PAIRS / PF_READS_ALIGNED'],
+        ['PF_READS_IMPROPER_PAIRS',	'The number of (primary) aligned reads that are **not** "properly" aligned in pairs (as per SAM flag 0x2).'],
+        ['PCT_PF_READS_IMPROPER_PAIRS',	'The fraction of (primary) reads that are *not* "properly" aligned in pairs (as per SAM flag 0x2). PF_READS_IMPROPER_PAIRS / PF_READS_ALIGNED'],
+        ['BAD_CYCLES',	'The number of instrument cycles in which 80% or more of base calls were no-calls.'],
+        ['STRAND_BALANCE',	'The number of PF reads aligned to the positive strand of the genome divided by the number of PF reads aligned to the genome.'],
+        ['PCT_CHIMERAS',	'The fraction of reads that map outside of a maximum insert size (usually 100kb) or that have the two ends mapping to different chromosomes.'],
+        ['PCT_ADAPTER',	'The fraction of PF reads that are unaligned and match to a known adapter sequence right from the start of the read.'],
+        ['MEDIAN_INSERT_SIZE',	'The median insert size of all paired end reads where both ends mapped to the same chromosome.'],
+        ['AT_DROPOUT',	'Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50].'],
+        ['GC_DROPOUT',	'Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100].']
+    ]
 
+    bammetrics_column_descriptions = pd.DataFrame(bammetrics_column_descriptions, columns=['Column', 'Description'])
+    collectmultiplemetrics_column_descriptions = pd.DataFrame(cmm_column_descriptions, columns=['Column', 'Description'])
     
     with pd.ExcelWriter(cmm_report_filename, engine_kwargs={'options':{'strings_to_formulas': False}}) as writer:
         bammetrics_report_data.to_excel(writer, sheet_name='bammetrics report', index=False)
         cmm_report.to_excel(writer, sheet_name="cmm report", index=False)
         bammetrics_column_descriptions.to_excel(writer, sheet_name='bammetrics column descriptions', index=False)
-        
+        collectmultiplemetrics_column_descriptions.to_excel(writer, sheet_name='collectmultiplemetrics column descriptions', index=False)
         workbook  = writer.book
         # thousands_format = workbook.add_format({'num_format': '#,##0'})
         thousands_format = workbook.add_format({'num_format': '#,###'})

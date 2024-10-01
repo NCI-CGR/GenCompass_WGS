@@ -518,13 +518,5 @@ def all(ctx,project_parameters, input_template_directory):
     ctx.invoke(mapping_report,project_parameters=project_parameters, input_template=mapping_report_input_template)
     ctx.invoke(annotate,project_parameters=project_parameters, input_template=annotation_input_template)
 
-
-
-        
-
-
 if __name__ == '__main__':
     cli()
-
-
-

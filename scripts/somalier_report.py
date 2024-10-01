@@ -12,7 +12,7 @@ def rename_sample(samplename):
 def infer_sex(row):
     if row['Y_depth_mean'] == 0 and row['X_het'] > 0:
         return 'Female'
-    elif row['Y_depth_mean'] > 0 and row['X_het'] ==0:
+    elif row['Y_depth_mean'] > 0 and row['X_het'] == 0:
         return 'Male'
     else:
         return 'Unknown'
