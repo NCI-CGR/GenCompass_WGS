@@ -1,8 +1,8 @@
-## GenCompass: Germline Ensemble Calling of Mutations with Parabricks Accelerated Software Suite
+# GenCompass: Germline Ensemble Calling of Mutations with Parabricks Accelerated Software Suite
 
 ---
 
-### AUTHORS
+## AUTHORS
 
 Ben Jordan and Laura Egolf
 
@@ -12,27 +12,30 @@ Technical Lead: Komal Jain
 
 ## Table of Contents
 
-- [GenCompass Overview](#gencompass-overview)
-  - [Premap-QC](#premap-qc)
-    - [Fastp](#fastp)
-    - [Fastq-Screen](#fastq-screen)
-    - [FastQC](#fastqc)
-  - [Mapping](#mapping)
-    - [Parabricks fq2bam](#parabricks-fq2bam)
-    - [Parabricks collectmultiplemetrics](#parabricks-collectmultiplemetrics)
-    - [Parabricks bammetrics](#parabricks-bammetrics)
-    - [VerifyBamId](#verifybamid)
-    - [Samtools coverage](#samtools-coverage)
-    - [Kraken](#kraken)
-    - [Somalier](#somalier)
-  - [Variant Calling](#variant-calling)
-    - [Parabricks DeepVariant](#parabricks-deepvariant)
-    - [Parabricks HaplotypeCaller](#parabricks-haplotypecaller)
-    - [Strelka2](#strelka2)
-  - [Joint Genotype](#joint-genotype)
-    - [GLNexus](#glnexus)
-  - [Harmonize](#harmonize)
-- [Running GenCompass](#running-gencompass)
+- [GenCompass: Germline Ensemble Calling of Mutations with Parabricks Accelerated Software Suite](#gencompass-germline-ensemble-calling-of-mutations-with-parabricks-accelerated-software-suite)
+  - [AUTHORS](#authors)
+  - [Table of Contents](#table-of-contents)
+  - [GenCompass Overview](#gencompass-overview)
+    - [Premap-QC](#premap-qc)
+      - [Fastp](#fastp)
+      - [Fastq-Screen](#fastq-screen)
+      - [FastQC](#fastqc)
+    - [Mapping](#mapping)
+      - [Parabricks fq2bam](#parabricks-fq2bam)
+      - [Parabricks collectmultiplemetrics](#parabricks-collectmultiplemetrics)
+      - [Parabricks bammetrics](#parabricks-bammetrics)
+      - [VerifyBamId](#verifybamid)
+      - [Samtools coverage](#samtools-coverage)
+      - [Kraken](#kraken)
+      - [Somalier](#somalier)
+    - [Variant Calling](#variant-calling)
+      - [Parabricks DeepVariant](#parabricks-deepvariant)
+      - [Parabricks HaplotypeCaller](#parabricks-haplotypecaller)
+      - [Strelka2](#strelka2)
+    - [Joint Genotype](#joint-genotype)
+      - [GLNexus](#glnexus)
+    - [Harmonize](#harmonize)
+  - [Running GenCompass](#running-gencompass)
     - [Before using](#before-using)
     - [Example 1. Generating all workflow files](#example-1-generating-all-workflow-files)
     - [Example 2. Generate single workflow inputs](#example-2-generate-single-workflow-inputs)
@@ -41,62 +44,62 @@ Technical Lead: Komal Jain
     - [Sample List (optional)](#sample-list-optional)
     - [Fastq Files](#fastq-files)
     - [Project Parameters JSON](#project-parameters-json)
-- [Dependencies](#dependencies)
-- [Output Folder Structure](#output-folder-structure)
+  - [Dependencies](#dependencies)
+  - [Output Folder Structure](#output-folder-structure)
     - [Premap-QC Output Folder Structure](#premap-qc-output-folder-structure)
     - [Mapping Output Folder Structure](#mapping-output-folder-structure)
     - [Variant Calling Output Folder Structure](#variant-calling-output-folder-structure)
     - [Joint Genotype Output Folder Structure](#joint-genotype-output-folder-structure)
     - [Harmonize Output Folder Structure](#harmonize-output-folder-structure)
 
-# GenCompass Overview
+## GenCompass Overview
 
 The GenCompass workflow is separated into five main modules: premapping and premapping-qc, mapping and postmap-qc, variant calling, joint genotyping, and harmonization
 ![Alt text](media/workflow_overview.png)
 
-## Premap-QC
+### Premap-QC
 
-### Fastp
+#### Fastp
 >
 > A tool designed to provide fast all-in-one preprocessing for FastQ files. This tool is developed in C++ with multithreading supported to afford high performance.
 >
 > Shifu Chen, Yanqing Zhou, Yaru Chen, Jia Gu; fastp: an ultra-fast all-in-one FASTQ preprocessor, Bioinformatics, Volume 34, Issue 17, 1 September 2018, Pages i884–i890, <https://doi.org/10.1093/bioinformatics/bty560>
 >
-### Fastq-Screen
+#### Fastq-Screen
 >
 > FastQ Screen allows you to set up a standard set of libraries against which all of your sequences can be searched. Your search libraries might contain the genomes of all of the organisms you work on, along with PhiX, Vectors or other contaminants commonly seen in sequencing experiments.
 
-### FastQC
+#### FastQC
 >
 > FastQC aims to provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines. It provides a modular set of analyses which you can use to give a quick impression of whether your data has any problems of which you should be aware before doing any further analysis.
 
-## Mapping
+### Mapping
 
-### Parabricks fq2bam
+#### Parabricks fq2bam
 >
 > Generate BAM/CRAM output given one or more pairs of FASTQ files. Can also optionally generate a BQSR report.
 
-### Parabricks collectmultiplemetrics
+#### Parabricks collectmultiplemetrics
 >
 >Run a GPU-accelerated version of GATK’s CollectMultipleMetrics.
 >
 >This tool applies an accelerated version of the GATK CollectMultipleMetrics for assessing BAM file metrics such as alignment success, quality score distributions, GC bias, and sequencing artifacts. This functions as a ‘meta-metrics’ tool that can run any combination of the available metrics tools in GATK to perform an overall assessment of how well a sequencing run has been performed.
 
-### Parabricks bammetrics
+#### Parabricks bammetrics
 >
 > Accelerated GATK4 CollectWGSMetrics.
 >
 > This tool applies an accelerated version of the GATK CollectWGSMetrics for assessing coverage and quality of an aligned whole-genome BAM file. This includes metrics such as the fraction of reads that pass the base and mapping quality filters, and the coverage levels (read-depth) across the genome. These act as an overall quality check for the user, allowing assessment of how well a sequencing run has performed.
 >
-### VerifyBamId
+#### VerifyBamId
 >
 > Verifies whether the reads in particular file match previously known genotypes for an individual (or group of individuals), and checks whether the reads are contaminated as a mixture of two samples.
 
-### Samtools coverage
+#### Samtools coverage
 >
 > Produces a histogram or table of coverage per chromosome. Coverage is defined as the percentage of positions within each bin with at least one base aligned against it.
 >
-### Kraken
+#### Kraken
 >
 > Kraken is a taxonomic sequence classifier that assigns taxonomic
 labels to DNA sequences.  Kraken examines the $k$-mers within
@@ -104,19 +107,19 @@ a query sequence and uses the information within those $k$-mers
 to query a database.  That database maps $k$-mers to the lowest
 common ancestor (LCA) of all genomes known to contain a given $k$-mer.
 
-### Somalier
+#### Somalier
 >
 > somalier makes checking any number of samples for identity easy directly from the alignments or from jointly-called VCFs
 >
-## Variant Calling
+### Variant Calling
 
-### Parabricks DeepVariant
+#### Parabricks DeepVariant
 >
 > Run a GPU-accelerated DeepVariant algorithm.
 >
 > DeepVariant is a deep learning based variant caller developed by Google for germline variant calling of high-throughput sequencing data. It works by taking aligned sequencing reads in BAM/CRAM format and utilizes a convolutional neural network (CNN) to classify the locus into true underlying genomic variation or sequencing error. DeepVariant can therefore call single nucleotide variants (SNVs) and insertions/deletions (InDels) from sequencing data at high accuracy in germline samples.
 
-### Parabricks HaplotypeCaller
+#### Parabricks HaplotypeCaller
 >
 > Run a GPU-accelerated haplotypecaller.
 >
@@ -124,17 +127,17 @@ common ancestor (LCA) of all genomes known to contain a given $k$-mer.
 
 > You can provide an optional BQSR report to fix the BAM, similar to ApplyBQSR. In this case, the updated base qualities will be used.
 >
-### Strelka2
+#### Strelka2
 >
 > Strelka2 is a fast and accurate small variant caller optimized for analysis of germline variation in small cohorts and somatic variation in tumor/normal sample pairs. The germline caller employs an efficient tiered haplotype model to improve accuracy and provide read-backed phasing, adaptively selecting between assembly and a faster alignment-based haplotyping approach at each variant locus. The germline caller also analyzes input sequencing data using a mixture-model indel error estimation method to improve robustness to indel noise.
 >
-## Joint Genotype
+### Joint Genotype
 
-### GLNexus
+#### GLNexus
 >
 > GLnexus (GL, Genotype Likelihood), a system for joint variant calling designed to scale up to the largest foreseeable human cohorts. GLnexus combines scalable joint calling algorithms with a persistent database that grows efficiently as additional participants are sequenced.
 >
-## Harmonize
+### Harmonize
 >
 > Several ensemble genotypes (GT) fields are generated
 >
@@ -142,7 +145,7 @@ common ancestor (LCA) of all genomes known to contain a given $k$-mer.
 > - Majority concensus voting (concensus_GT): If only one caller has call, it’s set to ./.
 > - DV priority voting (dv_priority_GT): If there is DV call, set to that GT If there’s no DV call: HC and strelka2 calls the same genotype, GT is set to that genotype Otherwise GT is set to ./.
 
-# Running GenCompass
+## Running GenCompass
 
 The `batch_builder/prepare_gencompass.py` script is used to build input json files and swarm scripts
 for the various workflows included in GenCompass. The script has several commands that can be chained together
@@ -242,7 +245,7 @@ EXAMPLE-SAMPLE-003
 }
 ```
 
-# Dependencies
+## Dependencies
 
 GenCompass runs using cromwell. Individual tasks have been containerized and uploaded to DockerHub.
 **Software required to run workflows**
@@ -273,11 +276,11 @@ GenCompass runs using cromwell. Individual tasks have been containerized and upl
 - strelka  2.9.0
 - glnexus  1.4.1
 
-# Output Folder Structure
+## Output Folder Structure
 
 ### Premap-QC Output Folder Structure
 
-```
+```bash
 workflow_results/
 ├── fastp
 │   ├── SAMPLE1
