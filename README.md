@@ -55,7 +55,8 @@ Technical Lead: Komal Jain
 ## GenCompass Overview
 
 The GenCompass workflow is separated into five main modules: premapping and premapping-qc, mapping and postmap-qc, variant calling, joint genotyping, and harmonization
-![Alt text](media/workflow_overview.png)
+
+![GenCompass Overview](./media/workflow_overview.png)
 
 ### Premap-QC
 
