@@ -1,0 +1,57 @@
+{
+    "JointGenotype.caller": "deepvariant",
+    "JointGenotype.intervalBED": "ReferenceBundle/Homo_sapiens_assembly38/wgs_calling_regions.hg38.interval_list.masked_GRC_exclusions.bed",
+    "JointGenotype.variantFOF": "./inputs/joint_genotype_inputs/deepvariant_vcf_files.txt",
+    "JointGenotype.glnexusConfig": "DeepVariant",
+    "JointGenotype.nucleotidesPerBin": 85000000,
+    "JointGenotype.splitIntervals": true,
+    "JointGenotype.skipCombine": true,
+    "JointGenotype.keepIndividualBCFs": true,
+    "JointGenotype.gencompassDocker": "cgrlab/gencompass:v1.2",
+    "JointGenotype.glnexusDocker": "cgrlab/glnexus:v1.4.1",
+    "JointGenotype.binIntervalsRuntimeAttributes": {
+        "memoryGiB": 50,
+        "cpuCount": 2,
+        "diskGiB": 2,
+        "runtimeMinutes": 60,
+        "maxPreemptAttempts": 3,
+        "hpcQueue": "norm",
+        "diskType": "SSD"
+    },
+    "JointGenotype.splitIntervalsRuntimeAttributes": {
+        "memoryGiB": 25,
+        "cpuCount": 16,
+        "diskGiB": 0,
+        "runtimeMinutes": 180,
+        "maxPreemptAttempts": 3,
+        "hpcQueue": "norm",
+        "diskType": "HDD"
+    },
+    "JointGenotype.glnexusRuntimeAttributes": {
+        "memoryGiB": 150,
+        "cpuCount": 32,
+        "diskGiB": 0,
+        "runtimeMinutes": 66,
+        "maxPreemptAttempts": 0,
+        "hpcQueue": "norm",
+        "diskType": "HDD"
+    },
+    "JointGenotype.indexRuntimeAttributes": {
+        "memoryGiB": 50,
+        "cpuCount": 8,
+        "diskGiB": 0,
+        "runtimeMinutes": 120,
+        "maxPreemptAttempts": 3,
+        "hpcQueue": "norm",
+        "diskType": "HDD"
+    },
+    "JointGenotype.compressRuntimeAttributes": {
+        "memoryGiB": 50,
+        "cpuCount": 8,
+        "diskGiB": 0,
+        "runtimeMinutes": 120,
+        "maxPreemptAttempts": 3,
+        "hpcQueue": "norm",
+        "diskType": "SSD"
+    }
+}

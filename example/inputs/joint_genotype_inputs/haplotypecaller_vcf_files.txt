@@ -1,0 +1,2 @@
+workflow_results/haplotypecaller/SM123456/SM123456.haplotypecaller.g.vcf.gz
+workflow_results/haplotypecaller/SM246810/SM246810.haplotypecaller.g.vcf.gz

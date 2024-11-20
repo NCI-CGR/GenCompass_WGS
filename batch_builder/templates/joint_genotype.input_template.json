@@ -4,13 +4,13 @@
   "JointGenotype.variantFOF": "{{variants_file}}",
   "JointGenotype.glnexusConfig": "{{glnexus_config}}",
   
-  "JointGenotype.nucleotidesPerBin": 850000000,
+  "JointGenotype.nucleotidesPerBin": 85000000,
   "JointGenotype.splitIntervals": true,
   "JointGenotype.skipCombine": true,
   "JointGenotype.keepIndividualBCFs": true,
 
 
-  "JointGenotype.gencompassDocker" : "cgrlab/gencompass:v1.1",
+  "JointGenotype.gencompassDocker" : "cgrlab/gencompass:v1.2",
 
   "JointGenotype.glnexusDocker" : "cgrlab/glnexus:v1.4.1",
 

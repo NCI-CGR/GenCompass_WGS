@@ -1,0 +1,32 @@
+{
+    "VariantCalling.sampleID": "SM123456",
+    "VariantCalling.sampleBQSR": "workflow_results/fq2bam/SM123456/SM123456.BQSR-REPORT.txt",
+    "VariantCalling.sampleBAM": "workflow_results/fq2bam/SM123456/SM123456.bam",
+    "VariantCalling.sampleBAI": "workflow_results/fq2bam/SM123456/SM123456.bam.bai",
+    "VariantCalling.haplotypecallerAdditionalArgs": [],
+    "VariantCalling.deepVariantAdditionalArgs": [],
+    "VariantCalling.runHaplotypeCaller": true,
+    "VariantCalling.runDeepVariant": true,
+    "VariantCalling.runStrelka2": true,
+    "VariantCalling.gencompassDocker": "cgrlab/gencompass:v1.2",
+    "VariantCalling.referenceTarball": "ReferenceBundle/Homo_sapiens_assembly38/Homo_sapiens_assembly38_masked_GRC_exclusions.fasta.tar",
+    "VariantCalling.strelkaDocker": "cgrlab/strelka:v2.9.10",
+    "VariantCalling.callRegions": "ReferenceBundle/Homo_sapiens_assembly38/wgs_calling_regions.hg38.interval_list.masked_GRC_exclusions.bed",
+    "VariantCalling.parabricksDocker": "cgrlab/clara-parabricks:4.3.0-1",
+    "VariantCalling.deepvariantRuntimeAttributes": {
+        "memoryGiB": 64,
+        "cpuCount": 32,
+        "acceleratorType": "v100x",
+        "acceleratorCount": 1
+    },
+    "VariantCalling.haplotypecallerRuntimeAttributes": {
+        "memoryGiB": 64,
+        "cpuCount": 32,
+        "acceleratorType": "v100x",
+        "acceleratorCount": 1
+    },
+    "VariantCalling.strelkaRuntimeAttributes": {
+        "memoryGiB": 64,
+        "cpuCount": 32
+    }
+}

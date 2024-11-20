@@ -12,7 +12,7 @@
     "VariantCalling.runDeepVariant": true,
     "VariantCalling.runStrelka2": true,
 
-    "VariantCalling.gencompassDocker" : "cgrlab/gencompass:v1.1",
+    "VariantCalling.gencompassDocker" : "cgrlab/gencompass:v1.2",
     "VariantCalling.referenceTarball" : "{{reference_bundle}}/Homo_sapiens_assembly38/Homo_sapiens_assembly38_masked_GRC_exclusions.fasta.tar",
     "VariantCalling.strelkaDocker" : "cgrlab/strelka:v2.9.10",
 

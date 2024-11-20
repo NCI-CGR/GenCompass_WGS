@@ -8,29 +8,30 @@
   "Harmonize.haplotypecallerVCF": "{{results_directory}}/joint_genotype/haplotypecaller/haplotypecaller.{{bin}}.glnexus.bcf.gz",
   "Harmonize.haplotypecallerVCFIndex": "{{results_directory}}/joint_genotype/haplotypecaller/haplotypecaller.{{bin}}.glnexus.bcf.gz.tbi",
 
-  "Harmonize.referenceTarball": "{{reference_bundle}}/Homo_sapiens_assembly38/Homo_sapiens_assembly38_masked_GRC_exclusions.fasta.tar",
+  "Harmonize.referenceTarball": "{{reference_bundle}}/Homo_sapiens_assembly38/Homo_sapiens_assembly38.fasta.tar",
 
   "Harmonize.labelBlockSize": "-1",
 
   "Harmonize.labelRuntimeAttributes": {
     "memoryGiB" : 20,
     "cpuCount" : 4,
-    "runtimeMinutes": 120
+    "runtimeMinutes": 2000
   },
   "Harmonize.normalizeRuntimeAttributes": {
     "memoryGiB" : 20,
     "cpuCount" : 8,
-    "runtimeMinutes": 120
+    "runtimeMinutes": 2000
   },
   "Harmonize.mergeBySampleRuntimeAttributes": {
     "memoryGiB" : 20,
     "cpuCount" : 4,
-    "runtimeMinutes": 240
+    "runtimeMinutes": 2000
   },
 
   "Harmonize.mergeByVariantRuntimeAttributes": {
     "memoryGiB" : 20,
     "cpuCount" : 4,
-    "runtimeMinutes": 240
-  }
+    "runtimeMinutes": 2000
+  },
+  "Harmonize.gencompassDocker" : "cgrlab/gencompass:v1.2"
 }

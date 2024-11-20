@@ -1,0 +1,14 @@
+{
+    "MappingReport.sampleList": "input_files/samples.txt",
+    "MappingReport.workflowResultsDirectory": "workflow_results",
+    "MappingReport.project": "example",
+    "MappingReport.runSomalierReport": true,
+    "MappingReport.runSequencingArtifactReport": true,
+    "MappingReport.runMultiQCReport": true,
+    "MappingReport.runParabricksReport": true,
+    "MappingReport.runVerifyBamIdReport": true,
+    "MappingReport.runKrakenReport": true,
+    "MappingReport.gencompassDocker": "cgrlab/gencompass:v1.1",
+    "MappingReport.somalierDocker": "cgrlab/somalier:v0.2.16",
+    "MappingReport.multiqcDocker": "cgrlab/qctools:v3.2"
+}

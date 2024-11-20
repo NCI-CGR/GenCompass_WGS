@@ -1,0 +1,9 @@
+#SWARM --threads-per-process 8
+#SWARM --gb-per-process 25
+#SWARM --time 1: 6:00
+#SWARM --module cromwell,singularity
+#SWARM --logdir ./swarm_logs/joint_genotype
+#SWARM --sbatch "--export SINGULARITY_CACHEDIR=/data/$USER/singularity_cache"
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/joint_genotype.wdl -o ./workflow_options/joint_genotype_options.json -i ./inputs/joint_genotype_inputs/joint_genotype.haplotypecaller_input_parameters.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/joint_genotype.wdl -o ./workflow_options/joint_genotype_options.json -i ./inputs/joint_genotype_inputs/joint_genotype.deepvariant_input_parameters.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/joint_genotype.wdl -o ./workflow_options/joint_genotype_options.json -i ./inputs/joint_genotype_inputs/joint_genotype.strelka2_input_parameters.json

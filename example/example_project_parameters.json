@@ -1,0 +1,15 @@
+{
+    "project": "example",
+
+    "manifest": "input_files/example_manifest.csv",
+    "fastq_files" : "input_files/example_raw_fastq_files.txt",
+    "reference_bundle": "ReferenceBundle",
+    "samples" : "input_files/samples.txt",
+    "results_directory": "workflow_results",
+    "logs_directory" :"workflow_logs",
+    "working_directory" : "./",
+
+    "cromwell_jar": "$CROMWELL_JAR",
+    "cromwell_config": "$CROMWELL_CONFIG",
+    "singularity_cachedir": "/data/$USER/singularity_cache"
+}

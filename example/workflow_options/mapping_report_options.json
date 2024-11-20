@@ -1,0 +1,7 @@
+{
+    "delete_intermediate_output_files": true,
+    "final_workflow_outputs_dir": "workflow_results",
+    "use_relative_output_paths": true,
+    "final_workflow_log_dir": "workflow_logs",
+    "final_call_logs_dir": "workflow_logs"
+}

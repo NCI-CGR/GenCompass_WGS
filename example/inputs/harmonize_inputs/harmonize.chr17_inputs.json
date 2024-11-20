@@ -1,0 +1,32 @@
+{
+    "Harmonize.project": "example.chr17",
+    "Harmonize.strelka2VCF": "workflow_results/joint_genotype/strelka2/strelka2.chr17.glnexus.bcf.gz",
+    "Harmonize.strelka2VCFIndex": "workflow_results/joint_genotype/strelka2/strelka2.chr17.glnexus.bcf.gz.tbi",
+    "Harmonize.deepvariantVCF": "workflow_results/joint_genotype/deepvariant/deepvariant.chr17.glnexus.bcf.gz",
+    "Harmonize.deepvariantVCFIndex": "workflow_results/joint_genotype/deepvariant/deepvariant.chr17.glnexus.bcf.gz.tbi",
+    "Harmonize.haplotypecallerVCF": "workflow_results/joint_genotype/haplotypecaller/haplotypecaller.chr17.glnexus.bcf.gz",
+    "Harmonize.haplotypecallerVCFIndex": "workflow_results/joint_genotype/haplotypecaller/haplotypecaller.chr17.glnexus.bcf.gz.tbi",
+    "Harmonize.referenceTarball": "ReferenceBundle/Homo_sapiens_assembly38/Homo_sapiens_assembly38.fasta.tar",
+    "Harmonize.labelBlockSize": "-1",
+    "Harmonize.labelRuntimeAttributes": {
+        "memoryGiB": 20,
+        "cpuCount": 4,
+        "runtimeMinutes": 2000
+    },
+    "Harmonize.normalizeRuntimeAttributes": {
+        "memoryGiB": 20,
+        "cpuCount": 8,
+        "runtimeMinutes": 2000
+    },
+    "Harmonize.mergeBySampleRuntimeAttributes": {
+        "memoryGiB": 20,
+        "cpuCount": 4,
+        "runtimeMinutes": 2000
+    },
+    "Harmonize.mergeByVariantRuntimeAttributes": {
+        "memoryGiB": 20,
+        "cpuCount": 4,
+        "runtimeMinutes": 2000
+    },
+    "Harmonize.gencompassDocker": "cgrlab/gencompass:v1.2"
+}

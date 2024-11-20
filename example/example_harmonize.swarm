@@ -1,0 +1,42 @@
+#SWARM --threads-per-process 8
+#SWARM --gb-per-process 25
+#SWARM --time 4:00:00
+#SWARM --module cromwell,singularity
+#SWARM --logdir ./swarm_logs/harmonize
+#SWARM --sbatch "--export SINGULARITY_CACHEDIR=/data/$USER/singularity_cache"
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr1.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr1.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr2.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr2.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr3.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr3.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr4.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr4.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr5.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr5.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr6.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr6.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr7.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr7.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr8.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr8.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr9.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr9.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr10.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr10.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr11.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr11.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr12_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr13_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr14_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr15_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr16_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr17_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr18_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr19_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr20_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr21_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chr22_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chrX.0_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chrX.1_inputs.json
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/harmonize.wdl -o ./workflow_options/harmonize_options.json -i ./inputs/harmonize_inputs/harmonize.chrY_inputs.json

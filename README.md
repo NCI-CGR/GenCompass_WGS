@@ -172,6 +172,31 @@ all \
 
 ```
 
+The folling folders and files are generated
+
+- workflows/ : workflow wdl files to be used
+- workflow_options/: cromwell options, used for setting the final results directory
+- *.swarm files - commands used for submitting the jobs
+
+
+
+The batch builder generates swarm files, used on slurm systems to submit many jobs at once. Each line is a command which can be run individually.
+
+**Running**
+
+`swarm example_premap.swarm`
+
+| File | Order | Description |
+|------|-------|-------------|
+| example_premap.swarm | 1 | Premap QC |
+| example_premap_report.swarm | 2 | Premap QC report |
+| example_mapping.swarm | 3 | Mapping with fq2bam |
+| example_postmap_qc.swarm | 4 | Postmap QC |
+| example_mapping_report.swarm | 5 | Mapping Report |
+| example_variant_calling.swarm | 6 | Variant Calling |
+| example_joint_genotype.swarm | 7 | Joint Genotype |
+| example_harmonize.swarm | 8 | Harmonize |
+
 ### Example 2. Generate single workflow inputs
 
 ```bash

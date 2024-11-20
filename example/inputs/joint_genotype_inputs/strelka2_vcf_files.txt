@@ -1,0 +1,2 @@
+workflow_results/strelka2/SM123456/SM123456.strelka.genome.vcf.gz
+workflow_results/strelka2/SM246810/SM246810.strelka.genome.vcf.gz

@@ -1,0 +1,2 @@
+workflow_results/deepvariant/SM123456/SM123456.deepvariant.g.vcf.gz
+workflow_results/deepvariant/SM246810/SM246810.deepvariant.g.vcf.gz

@@ -1,0 +1,7 @@
+#SWARM --threads-per-process 8
+#SWARM --gb-per-process 25
+#SWARM --time 4:00:00
+#SWARM --module cromwell,singularity
+#SWARM --logdir ./swarm_logs/mapping_report
+#SWARM --sbatch "--export SINGULARITY_CACHEDIR=/data/$USER/singularity_cache"
+java -Dconfig.file=$CROMWELL_CONFIG -jar $CROMWELL_JAR run ./workflows/mapping_report.wdl -o ./workflow_options/mapping_report_options.json -i ./inputs/mapping_report_inputs/mapping_report.inputs.json
