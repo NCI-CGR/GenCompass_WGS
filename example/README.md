@@ -12,7 +12,19 @@ The following example has been created in order to demonstrate how to set up and
 python ../batch_builder/prepare_gencompass.py all --project_parameters example_project_parameters.json
 ```
 
+The folling folders and files are generated
+
+- workflows/ : workflow wdl files to be used
+- workflow_options/: cromwell options, used for setting the final results directory
+- *.swarm files - commands used for submitting the jobs
+
+
+
 The batch builder generates swarm files, used on slurm systems to submit many jobs at once. Each line is a command which can be run individually.
+
+**Running**
+
+`swarm example_premap.swarm`
 
 | File | Order | Description |
 |------|-------|-------------|
@@ -24,7 +36,6 @@ example_mapping_report.swarm | 5 | Mapping Report |
 example_variant_calling.swarm | 6 | Variant Calling |
 example_joint_genotype.swarm | 7 | Joint Genotype |
 example_harmonize.swarm | 8 | Harmonize |
-
 
 
 

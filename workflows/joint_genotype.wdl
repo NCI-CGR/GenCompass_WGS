@@ -23,8 +23,6 @@ workflow JointGenotype {
         RuntimeAttributes? concatRuntimeAttributes
         RuntimeAttributes? indexRuntimeAttributes
         RuntimeAttributes? compressRuntimeAttributes
-
-
     }
     
     String glnexusBaseConfig = basename(glnexusConfig, ".yml")
@@ -90,7 +88,8 @@ workflow JointGenotype {
                         input:
                             bcf=glnexus.glnexusBCF,
                             oDir="joint_genotype/~{caller}",
-                            docker=gencompassDocker
+                            docker=gencompassDocker,
+                            runtimeAttributes=indexRuntimeAttributes
                     }
                 }
                 File bcfFile = select_first([indexGlnexus.bcfOriginal, glnexus.glnexusBCF])
@@ -125,7 +124,7 @@ workflow JointGenotype {
                 glnexusConfigOption=glnexusConfigOption,
                 glnexusConfigFile=glnexusConfigFile,
                 docker=glnexusDocker,
-                runtimeAttributes=indexRuntimeAttributes
+                runtimeAttributes=glnexusRuntimeAttributes
         }
     }
 
