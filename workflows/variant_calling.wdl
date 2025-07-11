@@ -200,7 +200,9 @@ task deepvariant_parabricks4 {
     String localTarball = basename(inputRefTarball)
     String ref = basename(inputRefTarball, ".tar")
     String outVCF = sampleID + ".deepvariant" + (if gvcfMode then '.g' else '') + ".vcf"
-    String localBAM = sampleID + ".bam"
+
+    String localBAM = basename(bamFile.bam)
+    String localBAI = basename(bamFile.bai)
     
     String oDir="deepvariant/~{sampleID}"
     Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])  < 1 then ceil(3.0 * size(bamFile.bam,  "GB")) + ceil(3.0 * size(inputRefTarball,  "GB")) + ceil(size(bamFile.bai,  "GB")) + 65 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
@@ -213,7 +215,7 @@ task deepvariant_parabricks4 {
         cd ~{oDir}
         # cp required for omics
         cp ~{bamFile.bam} ~{localBAM}
-        cp ~{bamFile.bai} ~{localBAM}.bai
+        cp ~{bamFile.bai} ~{localBAI}
 
         ln -s ~{inputRefTarball} ~{localTarball} && \
         tar xf ~{localTarball}
@@ -298,7 +300,8 @@ task haplotypecaller_parabricks4{
     # String outbase = basename(inputBAM, ".bam")
     String localTarball = basename(inputRefTarball)
     String ref = basename(inputRefTarball, ".tar")
-    String localBAM = sampleID + ".bam"
+    String localBAM = basename(bamFile.bam)
+    String localBAI = basename(bamFile.bai)
 
     Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])  < 1 then ceil(3.0 * size(bamFile.bam,  "GB")) + ceil(3.0 * size(inputRefTarball,  "GB")) + ceil(size(bamFile.bai,  "GB")) + 65 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
 
@@ -315,7 +318,7 @@ task haplotypecaller_parabricks4{
         mkdir -p ~{oDir}
         cd ~{oDir}
         cp ~{bamFile.bam} ~{localBAM}
-        cp ~{bamFile.bai} ~{localBAM}.bai
+        cp ~{bamFile.bai} ~{localBAI}
 
         ln -s ~{inputRefTarball} ~{localTarball} && \
         tar xvf ~{localTarball}
@@ -394,7 +397,8 @@ task strelka {
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
     # String outbase = basename(inputBAM, ".bam")
     String ref = basename(inputRefTarball, ".tar")
-    String localBAM = sampleID + ".bam"
+    String localBAM = basename(bamFile.bam)
+    String localBAI = basename(bamFile.bai)
 
     Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])  < 1 then ceil(3.0 * size(bamFile.bam,  "GB")) + ceil(3.0 * size(inputRefTarball,  "GB")) + 65 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
 
@@ -406,7 +410,7 @@ task strelka {
         mkdir -p ~{oDir}
 
         cp ~{bamFile.bam} ~{localBAM}
-        cp ~{bamFile.bai} ~{localBAM}.bai
+        cp ~{bamFile.bai} ~{localBAI}
         # cp ~{bamFile.bam} ./
         # cp ~{bamFile.bai} ./
         time tar xvf ~{inputRefTarball}

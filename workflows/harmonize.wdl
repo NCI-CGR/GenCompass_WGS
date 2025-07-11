@@ -2,6 +2,8 @@ version 1.0
 
 workflow Harmonize {
     input {
+
+        File intervalSplitFile
         
 
         File haplotypecallerVCF
@@ -13,147 +15,144 @@ workflow Harmonize {
         File strelka2VCF
         File strelka2VCFIndex
         
-        File referenceTarball
+        # File referenceTarball
+        Reference reference
         String project = "GenCompass"
-        String gencompassDocker="cgrlab/gencompass@sha256:ab81377e6c793d8bbf5b44bc1ea4e5a4b1bec943b7fb0691fd02ca9cfc64c21a"
-
-        String labelBlockSize="500M"
+        String gencompassDocker
+        String labelBlockSize="-2"
+        String mergeBySampleBlockSize="-2"
 
         RuntimeAttributes? normalizeRuntimeAttributes
-        RuntimeAttributes? labelRuntimeAttributes
         RuntimeAttributes? mergeByVariantRuntimeAttributes
         RuntimeAttributes? mergeBySampleRuntimeAttributes
-        
+        RuntimeAttributes? concatSplitIntervalsRuntimeAttributes
+
         # String called_variants
     }
-    call normalizeLeftAlignSplit as normalizeHaplotypeCaller {
-        input:
-            caller="haplotypecaller",
-            vcf=haplotypecallerVCF,
-            vcfIndex=haplotypecallerVCFIndex,
-            inputRefTarball=referenceTarball,
-            docker=gencompassDocker,
-            runtimeAttributes=normalizeRuntimeAttributes
+    Array[Array[String]] intervalSplitRegions = read_tsv(intervalSplitFile)
+
+    scatter(intervalSplit in intervalSplitRegions) {
+        String intervalSplitName = intervalSplit[0] + "." + intervalSplit[1] + "." + intervalSplit[2]
+        String intervalSplitRegion = intervalSplit[0] + ":" + intervalSplit[1] + "-" + intervalSplit[2]
+
+        call splitNormalizeLabelHaplotypeCallerDeepVariant as normalizeHaplotypeCaller {
+            input:
+                project="~{project}.~{intervalSplitName}",
+                caller="haplotypecaller",
+                interval=intervalSplitRegion,
+                vcf=haplotypecallerVCF,
+                vcfIndex=haplotypecallerVCFIndex,
+                reference=reference,
+                blockSize=labelBlockSize,
+                docker=gencompassDocker,
+                runtimeAttributes=normalizeRuntimeAttributes
+        }
+
+        call splitNormalizeLabelHaplotypeCallerDeepVariant as normalizeDeepVariant {
+            input:
+                project="~{project}.~{intervalSplitName}",
+                caller="deepvariant",
+                interval=intervalSplitRegion,
+                vcf=deepvariantVCF,
+                vcfIndex=deepvariantVCFIndex,
+                reference=reference,
+                blockSize=labelBlockSize,
+                docker=gencompassDocker,
+                runtimeAttributes=normalizeRuntimeAttributes
+        }
+
+        call splitNormalizeLabelStrelka as normalizeStrelka2 {
+            input:
+                project="~{project}.~{intervalSplitName}",
+                caller="strelka2",
+                interval=intervalSplitRegion,
+                vcf=strelka2VCF,
+                vcfIndex=strelka2VCFIndex,
+                blockSize=labelBlockSize,
+                reference=reference,
+                docker=gencompassDocker,
+                runtimeAttributes=normalizeRuntimeAttributes
+        }
+        
+        Array[File] callerLabeledVCF = [normalizeHaplotypeCaller.labeledVCF, normalizeDeepVariant.labeledVCF, normalizeStrelka2.labeledVCF]
+        Array[File] callerLabeledVCFI = [normalizeHaplotypeCaller.labeledVCFI, normalizeDeepVariant.labeledVCFI, normalizeStrelka2.labeledVCFI]
+
+        call mergeByVariant {
+            input:
+                project="~{project}.~{intervalSplitName}",
+                callerLabeledVCF=callerLabeledVCF,
+                callerLabeledVCFI=callerLabeledVCFI, 
+                docker=gencompassDocker,
+                runtimeAttributes=mergeByVariantRuntimeAttributes
+        }
+
+        call mergeBySample {
+            input:
+                vcfMergedByVariant = mergeByVariant.mergedVariants,
+                blockSize=mergeBySampleBlockSize,
+                project="~{project}.~{intervalSplitName}",
+                docker=gencompassDocker,
+                runtimeAttributes=mergeBySampleRuntimeAttributes
+        }
     }
-
-    call normalizeLeftAlignSplit as normalizeDeepVariant {
+    call concatSplitIntervals {
         input:
-            caller="deepvariant",
-            vcf=deepvariantVCF,
-            vcfIndex=deepvariantVCFIndex,
-            inputRefTarball=referenceTarball,
-            docker=gencompassDocker,
-            runtimeAttributes=normalizeRuntimeAttributes
-    }
-
-    call normalizeLeftAlignSplitStrelka as normalizeStrelka2 {
-        input:
-            caller="strelka2",
-            vcf=strelka2VCF,
-            vcfIndex=strelka2VCFIndex,
-            inputRefTarball=referenceTarball,
-            docker=gencompassDocker,
-            runtimeAttributes=normalizeRuntimeAttributes
-    }
-
-    call labelWithCallers as labelHaplotypeCaller {
-        input:
-            caller="haplotypecaller",
-            vcf=normalizeHaplotypeCaller.normalizedVCF,
-            docker=gencompassDocker,
-            runtimeAttributes=labelRuntimeAttributes,
-            blockSize=labelBlockSize
-    }
-
-    call labelWithCallers as labelDeepVariant {
-        input:
-            caller="deepvariant",
-            vcf=normalizeDeepVariant.normalizedVCF,
-            docker=gencompassDocker,
-            runtimeAttributes=labelRuntimeAttributes,
-            blockSize=labelBlockSize
-    }
-
-    call labelWithCallers as labelStrelka2 {
-        input:
-            caller="strelka2",
-            vcf=normalizeStrelka2.normalizedVCF,
-            docker=gencompassDocker,
-            runtimeAttributes=labelRuntimeAttributes,
-            blockSize=labelBlockSize
-    }
-
-    Array[File] callerLabeledVCF = [labelHaplotypeCaller.labeledVCF, labelDeepVariant.labeledVCF, labelStrelka2.labeledVCF]
-    Array[File] callerLabeledVCFI = [labelHaplotypeCaller.labeledVCFI, labelDeepVariant.labeledVCFI, labelStrelka2.labeledVCFI]
-
-    call mergeByVariant {
-        input:
-            callerLabeledVCF=callerLabeledVCF,
-            callerLabeledVCFI=callerLabeledVCFI, 
-            docker=gencompassDocker,
-            runtimeAttributes=mergeByVariantRuntimeAttributes
-    }
-
-    call mergeBySample {
-        input:
-            vcfMergedByVariant = mergeByVariant.mergedVariants,
+            harmonizedSplitVCF=mergeBySample.mergedVCF,
+            harmonizedSplitVCFI=mergeBySample.mergedVCFI,
             project=project,
             docker=gencompassDocker,
-            runtimeAttributes=mergeBySampleRuntimeAttributes
+            runtimeAttributes=concatSplitIntervalsRuntimeAttributes
+
+
     }
 
     output {
-        File mergedVCF = mergeBySample.mergedVCF
-        File mergedVCFI = mergeBySample.mergedVCFI
+        File harmonizedVCF = concatSplitIntervals.harmonizedMergedVCF
+        File harmonizedVCFI = concatSplitIntervals.harmonizedMergedVCFI
+        
     }
-
 }
+
 
 struct BCFandIndex {
     File bcf
     File bcfIndex
 }
-task normalizeLeftAlignSplit {
-    input {
-        File inputRefTarball
 
+
+task splitVariantByInterval {
+    input {
         File vcf
         File vcfIndex
-
-        String caller
-        
-        String docker = "cgrlab/gencompass@sha256:ab81377e6c793d8bbf5b44bc1ea4e5a4b1bec943b7fb0691fd02ca9cfc64c21a"
+        String interval
+        String name
+        String docker
         RuntimeAttributes? runtimeAttributes
     }
     RuntimeAttributes defaultRuntimeAttributes = {
-                    "memoryGiB" : 50,
-                    "cpuCount" : 8,
+                    "memoryGiB" : 25,
+                    "cpuCount" : 16,
                     "diskGiB" : 0,
-                    "runtimeMinutes": 120,
-                    "maxPreemptAttempts": 3,
+                    "runtimeMinutes": 180,
                     "hpcQueue": "norm",
-                    "diskType" : "SSD"
+                    "diskType" : "HDD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
-    Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) < 1 then ceil(size(inputRefTarball,  "GB")) + ceil(size(vcf,  "GB")) + 65 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])
+    
     Int nThreads = select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
-    String ref = basename(inputRefTarball, ".tar")
-    String oDir="~{caller}/ensemble"
-    String oFile = "~{oDir}/~{caller}.normalized.vcf.gz"
-    command {
+    # String oDir = "splitVariants"
+    
+    command <<<
         set -euxo pipefail
-        time tar xvf ~{inputRefTarball}
-        mkdir -p ~{oDir} 
-        bcftools norm -f ~{ref} -m - --threads ~{nThreads} ~{vcf} -Oz -o ~{oFile}
-        rm ~{ref}*
-    }
-    output {
-        File normalizedVCF = "~{oFile}"
-    }
+        bcftools filter --regions ~{interval} --write-index -Ob -o ~{name}.bcf.gz ~{vcf}
+    >>>
 
+    output {
+        File filteredVCF="~{name}.bcf.gz"
+        File filteredVCFI="~{name}.vcf.gz.csi"
+    }
     runtime {
         docker : docker
-        disks : "local-disk ~{autoDiskGB} ~{select_first([runtimeAttributesOverride.diskType, defaultRuntimeAttributes.diskType])}"
         cpu : select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
         memory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) + " GiB"
         
@@ -164,71 +163,18 @@ task normalizeLeftAlignSplit {
         hpcRuntimeMinutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
         runtime_minutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
 
-        zones : ["us-central1-a", "us-central1-b", "us-central1-c"]
-        preemptible : select_first([runtimeAttributesOverride.maxPreemptAttempts, defaultRuntimeAttributes.maxPreemptAttempts])
     }
 }
-task normalizeLeftAlignSplitStrelka {
-    input {
-        File inputRefTarball
 
+task splitNormalizeLabelStrelka {
+    input {
         File vcf
         File vcfIndex
-
-        String caller
-        
-        String docker = "cgrlab/gencompass@sha256:ab81377e6c793d8bbf5b44bc1ea4e5a4b1bec943b7fb0691fd02ca9cfc64c21a"
-        RuntimeAttributes? runtimeAttributes
-    }
-    RuntimeAttributes defaultRuntimeAttributes = {
-                    "memoryGiB" : 50,
-                    "cpuCount" : 8,
-                    "diskGiB" : 0,
-                    "runtimeMinutes": 120,
-                    "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
-                    "diskType" : "SSD"
-    }
-    RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
-    Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) < 1 then ceil(size(inputRefTarball,  "GB")) + ceil(size(vcf,  "GB")) + 65 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])
-    String ref = basename(inputRefTarball, ".tar")
-    String oDir="~{caller}/ensemble"
-    String oFile = "~{oDir}/~{caller}.normalized.vcf.gz"
-    Int nThreads = select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
-    command {
-        set -euxo pipefail
-        time tar xvf ~{inputRefTarball}
-        mkdir -p ~{oDir} 
-        bcftools norm -f ~{ref} -m - --threads ~{nThreads} ~{vcf} | bcftools view --min-ac 1 --threads ~{nThreads}  -Oz -o ~{oFile}
-        rm ~{ref}
-    }
-    output {
-        File normalizedVCF = "~{oFile}"
-    }
-
-    runtime {
-        docker : docker
-        disks : "local-disk ~{autoDiskGB} ~{select_first([runtimeAttributesOverride.diskType, defaultRuntimeAttributes.diskType])}"
-        cpu : select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
-        memory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) + " GiB"
-        
-        hpcMemory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB])
-        memory_mb : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) * 1024
-        hpcQueue : select_first([runtimeAttributesOverride.hpcQueue, defaultRuntimeAttributes.hpcQueue])
-        queue : select_first([runtimeAttributesOverride.hpcQueue, defaultRuntimeAttributes.hpcQueue])
-        hpcRuntimeMinutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
-        runtime_minutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
-
-        zones : ["us-central1-a", "us-central1-b", "us-central1-c"]
-        preemptible : select_first([runtimeAttributesOverride.maxPreemptAttempts, defaultRuntimeAttributes.maxPreemptAttempts])
-    }
-}
-
-task labelWithCallers {
-    input {
-        File vcf
+        String interval
+        String project
         String caller
         String docker="cgrlab/gencompass@sha256:ab81377e6c793d8bbf5b44bc1ea4e5a4b1bec943b7fb0691fd02ca9cfc64c21a"
+        Reference reference
 
         # String tempDir="./"
 
@@ -245,69 +191,67 @@ task labelWithCallers {
                     "cpuCount" : 32,
                     "diskGiB" : 0,
                     "runtimeMinutes": 120,
-                    "maxPreemptAttempts": 3,
                     "hpcQueue": "norm",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
-    String vcfLabeledFilename = "~{caller}.labeled.vcf"
+    String vcfLabeledFilename = "~{project}.~{caller}.labeled.vcf"
     Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])  < 1 then ceil(8.0 * size(vcf,  "GB")) + 65 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
     String oDir ="~{caller}/ensemble"
-    String tempDir="./"
     String callerLabel = callerLabelMap[caller]
-    String vcfBasename = basename(vcf, ".gz")
-    Int compression = 10
     Int nThreads = select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
-    Int blocksize = ceil(size(vcf, "MB") * compression / select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount]))
     
     command<<<
         set -euxo pipefail
-
         mkdir -p ~{oDir} 
-        mkdir work_separate && mkdir work_label
+
 
         #*********************************************
-        # Separating header and variants
+        # Update header
         #*********************************************
-        echo "Separating header and variants"
-        bcftools view --threads ~{nThreads} -I -h ~{vcf} -Ov -o header.vcf
-        # zcat ~{vcf} | parallel --pipe --keep-order --block ~{blocksize}M -j ~{nThreads} "egrep -v '^#'" > variants.vcf
-        echo "Running bgzip"
-        bgzip -d ~{vcf} -c --threads ~{nThreads} > ~{vcfBasename}
-        echo "Separating variants"
-        time parallel --pipepart --keep-order --block ~{blockSize} --tmpdir work_separate -j ~{nThreads} -a ~{vcfBasename} "egrep -v '^#'" > variants.vcf
-        rm -r work_separate
-        rm ~{vcfBasename}
-        
+        bcftools view --header-only --no-update ~{vcf} -o header.txt
+        sed -i 's\^##FORMAT=<ID=AD,Number=.\##FORMAT=<ID=AD,Number=R\g' header.txt
+
         #*********************************************
-        # Label header and variant file with caller
+        # Normalize
+        #   - reheader
+        #   - filter based on call regions
+        #   - normalize
+        #   - filter min allele count 1
+        #*********************************************
+        echo "Normalizing"
+        bcftools reheader --header header.txt ~{vcf} --threads ~{nThreads} -o reheaded.vcf
+        bcftools index reheaded.vcf  # optional but recommended if compressed
+
+
+        bcftools filter --threads ~{nThreads} --regions ~{interval} -Ou reheaded.vcf | \
+        bcftools norm -f ~{reference.fasta} -m - --threads ~{nThreads} -Ou | \
+        bcftools view --min-ac 1 --threads ~{nThreads}  -Ov -o normalized.vcf
+
+        rm reheaded.vcf
+
+        #*********************************************
+        # Label vcf with caller
         #*********************************************
         echo "Labeling variants with caller"
-        # cat variants.vcf | parallel --pipe --keep-order --block ~{blocksize}M -j ~{nThreads} "cat > temp/{#}; prepend_labels_variant.sh temp/{#} ~{callerLabel}" > $saveDIR/~{oDir}/prepended.variants.vcf
-        # time parallel --pipepart --keep-order --block ~{blockSize} --tmpdir ~{tempDir}/work -j ~{nThreads} -a ../variants.vcf "cat > {#}; prepend_labels_variant.sh {#} ~{callerLabel}" > $saveDIR/~{oDir}/prepended.variants.vcf
-        time parallel --pipepart --keep-order --block ~{blockSize} --tmpdir work_label -j ~{nThreads} -a variants.vcf "cat > {#}; prepend_labels_variant.sh {#} ~{callerLabel}" > ~{oDir}/prepended.variants.vcf
-        rm -r work_label
-        prepend_labels_header.sh header.vcf ~{callerLabel} ~{oDir}
-        rm variants.vcf
-        rm header.vcf
+        mkdir work_label
+        time parallel --pipepart --keep-order --block ~{blockSize} --tmpdir work_label -j ~{nThreads} -a normalized.vcf "prepend_labels_stdin.sh ~{callerLabel}" > ~{oDir}/~{vcfLabeledFilename}
+        # rm -r work_label
+        rm normalized.vcf
+        cd ~{oDir}
+
 
         #*********************************************
-        # Recombine labeled header and variants
+        # Compress
         #*********************************************
-        echo "Recombining header and variants"
-        cd ~{oDir}
-        time cat prepended.header.vcf prepended.variants.vcf > ~{vcfLabeledFilename}
-        rm prepended.header.vcf 
-        rm prepended.variants.vcf
-        
         echo "Compressing and indexing labeled vcf"
         time bgzip --threads ~{nThreads} ~{vcfLabeledFilename}
-        time tabix -p vcf ~{vcfLabeledFilename}.gz
+        time bcftools index --threads ~{nThreads}  ~{vcfLabeledFilename}.gz
     >>>
     
     output {
         File labeledVCF = "~{oDir}/~{vcfLabeledFilename}.gz"
-        File labeledVCFI = "~{oDir}/~{vcfLabeledFilename}.gz.tbi"
+        File labeledVCFI = "~{oDir}/~{vcfLabeledFilename}.gz.csi"
     }
 
     runtime {
@@ -324,7 +268,99 @@ task labelWithCallers {
         runtime_minutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
 
         zones : ["us-central1-a", "us-central1-b", "us-central1-c"]
-        preemptible : select_first([runtimeAttributesOverride.maxPreemptAttempts, defaultRuntimeAttributes.maxPreemptAttempts])
+    }
+
+}
+
+task splitNormalizeLabelHaplotypeCallerDeepVariant {
+    input {
+        File vcf
+        File vcfIndex
+        String interval
+        Reference reference
+        String project
+        String caller
+        String docker
+
+        # String tempDir="./"
+
+        Map[String, String] callerLabelMap = {
+            "deepvariant" : "DV", 
+            "haplotypecaller": "HC",
+            "strelka2" : "strelka2"
+        }
+        String blockSize="500M"
+        RuntimeAttributes? runtimeAttributes
+    }
+    RuntimeAttributes defaultRuntimeAttributes = {
+                    "memoryGiB" : 50,
+                    "cpuCount" : 32,
+                    "diskGiB" : 0,
+                    "runtimeMinutes": 120,
+                    "hpcQueue": "norm",
+                    "diskType" : "SSD"
+    }
+    RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
+    String vcfLabeledFilename = "~{project}.~{caller}.labeled.vcf"
+    Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])  < 1 then ceil(8.0 * size(vcf,  "GB")) + 65 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
+    String oDir ="~{caller}/ensemble"
+    String callerLabel = callerLabelMap[caller]
+    Int nThreads = select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
+    
+    command<<<
+        set -euxo pipefail
+        mkdir -p ~{oDir} 
+        
+
+        #*********************************************
+        # Normalize
+        #*********************************************
+        echo "Normalizing"
+        time bcftools filter --threads ~{nThreads} --regions ~{interval} -Ou ~{vcf} | \
+            bcftools norm --threads ~{nThreads} -f ~{reference.fasta} -m - -Ov -o normalized.vcf
+
+        #*********************************************
+        # Label header and variant file with caller
+        #*********************************************
+        echo "Labeling variants with caller"
+        mkdir work_label
+        time parallel --pipepart --keep-order --block ~{blockSize} --tmpdir work_label -j ~{nThreads} -a normalized.vcf "prepend_labels_stdin.sh ~{callerLabel}" > ~{oDir}/~{vcfLabeledFilename}
+        rm normalized.vcf
+        cd ~{oDir}
+        
+        # echo "Normalizing and labelling vcf"
+        # time bcftools filter --regions ~{interval} -Ou ~{vcf} | \
+        #     bcftools norm -f ~{reference.fasta} -m - --threads ~{nThreads} -Ov | \
+        #     prepend_labels_stdin.sh ~{callerLabel} | \
+        #     bcftools view -Oz --write-index --threads ~{nThreads} -o ~{vcfLabeledFilename}.gz
+
+        #*********************************************
+        # Compress normalized + labeled VCF
+        #*********************************************
+        echo "Compressing and indexing labeled vcf"
+        time bgzip --threads ~{nThreads} ~{vcfLabeledFilename}
+        time bcftools index --threads ~{nThreads}  ~{vcfLabeledFilename}.gz
+    >>>
+    
+    output {
+        File labeledVCF = "~{oDir}/~{vcfLabeledFilename}.gz"
+        File labeledVCFI = "~{oDir}/~{vcfLabeledFilename}.gz.csi"
+    }
+
+    runtime {
+        docker : docker
+        disks : "local-disk ~{autoDiskGB} ~{select_first([runtimeAttributesOverride.diskType, defaultRuntimeAttributes.diskType])}"
+        cpu : select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
+        memory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) + " GiB"
+        
+        hpcMemory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB])
+        memory_mb : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) * 1024
+        hpcQueue : select_first([runtimeAttributesOverride.hpcQueue, defaultRuntimeAttributes.hpcQueue])
+        queue : select_first([runtimeAttributesOverride.hpcQueue, defaultRuntimeAttributes.hpcQueue])
+        hpcRuntimeMinutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
+        runtime_minutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
+
+        zones : ["us-central1-a", "us-central1-b", "us-central1-c"]
     }
 
 }
@@ -333,8 +369,9 @@ task mergeByVariant {
     input{
         Array[File] callerLabeledVCF
         Array[File] callerLabeledVCFI
+        String project
         
-        String docker = "cgrlab/gencompass@sha256:ab81377e6c793d8bbf5b44bc1ea4e5a4b1bec943b7fb0691fd02ca9cfc64c21a"
+        String docker
         RuntimeAttributes? runtimeAttributes
     }
     RuntimeAttributes defaultRuntimeAttributes = {
@@ -342,21 +379,20 @@ task mergeByVariant {
                     "cpuCount" : 12,
                     "diskGiB" : 0,
                     "runtimeMinutes": 240,
-                    "maxPreemptAttempts": 3,
                     "hpcQueue": "norm",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
     String oDir="ensemble"
-    String oFile = "ensemble/all_callers.vcf"
+    String oFile = "ensemble/~{project}.all_callers.vcf"
 
     Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) < 1 then ceil(3.0 * size(callerLabeledVCF,  "GB"))  + ceil(size(callerLabeledVCFI,  "GB")*2) + 50 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])
-    
+    Int nThreads = select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
 
     command {
         set -euxo pipefail
         mkdir -p ~{oDir}
-        bcftools merge --force-samples --threads ~{select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])} -m none ~{sep=" " callerLabeledVCF} -Ov -o ~{oFile}
+        bcftools merge --force-samples --threads ~{nThreads} -m none ~{sep=" " callerLabeledVCF} -Ov -o ~{oFile}
     }
     output{ 
         File mergedVariants = "~{oFile}"
@@ -365,7 +401,7 @@ task mergeByVariant {
     runtime {
         docker : docker
         disks : "local-disk ~{autoDiskGB} ~{select_first([runtimeAttributesOverride.diskType, defaultRuntimeAttributes.diskType])}"
-        cpu : select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
+        cpu : nThreads
         memory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) + " GiB"
         
         hpcMemory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB])
@@ -375,8 +411,6 @@ task mergeByVariant {
         hpcRuntimeMinutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
         runtime_minutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
 
-        zones : ["us-central1-a", "us-central1-b", "us-central1-c"]
-        preemptible : select_first([runtimeAttributesOverride.maxPreemptAttempts, defaultRuntimeAttributes.maxPreemptAttempts])
     }
     
 
@@ -386,9 +420,10 @@ task mergeBySample {
     input {
         File vcfMergedByVariant
 
-        String docker = "cgrlab/gencompass@sha256:ab81377e6c793d8bbf5b44bc1ea4e5a4b1bec943b7fb0691fd02ca9cfc64c21a"
+        String docker
         
         String project = ""
+        String blockSize="-1"
 
         RuntimeAttributes? runtimeAttributes
     }
@@ -397,7 +432,6 @@ task mergeBySample {
                     "cpuCount" : 32,
                     "diskGiB" : 0,
                     "runtimeMinutes": 240,
-                    "maxPreemptAttempts": 3,
                     "hpcQueue": "norm",
                     "diskType" : "SSD"
     }
@@ -407,26 +441,30 @@ task mergeBySample {
     
     String oDir = "ensemble"
     String oFileVCF = if project != "" then "~{project}.all_callers_merged_genotypes.vcf" else "all_callers_merged_genotypes.vcf"
+    Int nThreads = select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
     
     command<<<
         set -euxo pipefail
         mkdir -p ~{oDir}
-        mkdir work
-        parallel --pipepart --keep-order --block -1 -j ~{select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])} --tmpdir work -a ~{vcfMergedByVariant} "cat > {#};genotype_union.py {#}" >  ~{oDir}/~{oFileVCF}
+        mkdir -p work/work
+        cd work
+        parallel --pipepart --keep-order --block ~{blockSize} -j ~{nThreads} --tmpdir work -a ~{vcfMergedByVariant} "cat > {#};genotype_union.py {#}" >  ../~{oDir}/~{oFileVCF}
+        cd ../
+        rm -r work
         cd ~{oDir}
-        bgzip --threads ~{select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])} ~{oFileVCF}
-        tabix -p vcf ~{oFileVCF}.gz
+        bgzip --threads ~{nThreads} ~{oFileVCF}
+        bcftools index --threads ~{nThreads}  ~{oFileVCF}.gz
     >>>
 
     output {
         File mergedVCF="~{oDir}/~{oFileVCF}.gz"
-        File mergedVCFI="~{oDir}/~{oFileVCF}.gz.tbi"
+        File mergedVCFI="~{oDir}/~{oFileVCF}.gz.csi"
     }
 
     runtime {
         docker : docker
         disks : "local-disk ~{autoDiskGB} ~{select_first([runtimeAttributesOverride.diskType, defaultRuntimeAttributes.diskType])}"
-        cpu : select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
+        cpu : nThreads
         memory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) + " GiB"
         
         hpcMemory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB])
@@ -436,10 +474,55 @@ task mergeBySample {
         hpcRuntimeMinutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
         runtime_minutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
 
-        zones : ["us-central1-a", "us-central1-b", "us-central1-c"]
-        preemptible : select_first([runtimeAttributesOverride.maxPreemptAttempts, defaultRuntimeAttributes.maxPreemptAttempts])
     }
 
+}
+
+task concatSplitIntervals {
+    input{
+        Array[File] harmonizedSplitVCF
+        Array[File] harmonizedSplitVCFI
+        String project
+        String docker
+        RuntimeAttributes? runtimeAttributes
+    }
+    RuntimeAttributes defaultRuntimeAttributes = {
+                "memoryGiB" : 50,
+                "cpuCount" : 8,
+                "runtimeMinutes": 120,
+                "hpcQueue": "norm",
+    }
+    RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
+    Int nThreads = select_first([runtimeAttributesOverride.cpuCount, defaultRuntimeAttributes.cpuCount])
+    String oDir = "ensemble"
+    String oFileVCF = if project != "" then "~{project}.all_callers_merged_genotypes.vcf.gz" else "all_callers_merged_genotypes.vcf.gz"
+    command <<<
+        set -euxo pipefail
+        mkdir -p ~{oDir} 
+        bcftools concat --threads ~{nThreads} --write-index -Oz -o ~{oDir}/~{oFileVCF} ~{sep=' ' harmonizedSplitVCF}
+    >>>
+    output{
+        File harmonizedMergedVCF="~{oDir}/~{oFileVCF}"
+        File harmonizedMergedVCFI="~{oDir}/~{oFileVCF}.csi"
+    }
+    runtime {
+        docker : docker
+        cpu : nThreads
+        memory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) + " GiB"
+        
+        hpcMemory : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB])
+        memory_mb : select_first([runtimeAttributesOverride.memoryGiB, defaultRuntimeAttributes.memoryGiB]) * 1024
+        hpcQueue : select_first([runtimeAttributesOverride.hpcQueue, defaultRuntimeAttributes.hpcQueue])
+        queue : select_first([runtimeAttributesOverride.hpcQueue, defaultRuntimeAttributes.hpcQueue])
+        hpcRuntimeMinutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
+        runtime_minutes : select_first([runtimeAttributesOverride.runtimeMinutes, defaultRuntimeAttributes.runtimeMinutes])
+
+    }
+}
+
+struct Reference {
+    File fasta
+    Array[File] index
 }
 
 
@@ -448,12 +531,7 @@ struct RuntimeAttributes {
     Int? cpuCount
     Int? diskGiB
     Int? bootDiskGiB
-    Int? preemptibleTries
-    Int? maxRetries
-    String? acceleratorType
-    Int? acceleratorCount
-    String? acceleratorDriverVersion
-    Int? maxPreemptAttempts
+    
     Int? runtimeMinutes
     String? hpcQueue
     String? diskType

@@ -214,12 +214,14 @@ def get_concensus_gt(gt1, gt2, gt3):  # In this order: HC, DV, strelka2
         and they are not concordant: GT is set to ./.
     Finally, If only one caller has call, it's set to ./.
     """
-    if flip_hets(gt1) == flip_hets(gt2):
+    gt1_flip=flip_hets(gt1)
+    gt2_flip=flip_hets(gt2)
+    gt3_flip=flip_hets(gt3)
+
+    if gt1_flip == gt2_flip or gt1_flip == gt3_flip:
         concensus_gt = gt1
-    elif flip_hets(gt2) == flip_hets(gt3):
+    elif gt2_flip == gt3_flip:
         concensus_gt = gt2
-    elif flip_hets(gt1) == flip_hets(gt3):
-        concensus_gt = gt1
     else:
         concensus_gt = "./."
     return concensus_gt
@@ -232,10 +234,13 @@ def get_dv_priority_gt(gt1, gt2, gt3):  # In this order: HC, DV, strelka2
         and HC and strelka2 calls the same genotype, GT is set to that genotype
         otherwise GT is set to ./.
     """
+    gt1_flip=flip_hets(gt1)
+    gt3_flip=flip_hets(gt3)
+
     dv_priority_gt = "./."
     if gt2.count(".") == 0:
         dv_priority_gt = gt2
-    elif flip_hets(gt1) == flip_hets(gt3):
+    elif gt1_flip == gt3_flip:
         dv_priority_gt = gt1
     return dv_priority_gt
 
@@ -268,28 +273,24 @@ def combine_genotypes(line, start1, end1, start2, end2, start3, end3):
         geno2 = y.split(":")
         geno3 = z.split(":")
         field = line.index(x)
+    
+        concensus_gt = get_concensus_gt(geno1[0], geno2[0], geno3[0],)
+        dv_priority_gt = get_dv_priority_gt(geno1[0], geno2[0], geno3[0])
+        # Consensus GT and concordant GT are identical for variants found by two or three callers
+        geno1[0] = concensus_gt
+        
         for i, g1 in enumerate(geno1):
-            if i == 0:
-                if (geno1[i] != geno2[i]) and (geno1[i] != geno3[i]) and (geno2[i] != geno3[i]):
-                    geno1[i] = "./."
-                elif geno2[i] == geno3[i]:
-                    geno1[i] = geno2[i]
             if (geno1[i] == ".") and (geno2[i] != "."):
                 geno1[i] = geno2[i]
-            if (geno1[i] == ".") and (geno2[i] == ".") and (geno3[i] != "."):
+            elif (geno1[i] == ".") and (geno3[i] != "."):
                 geno1[i] = geno3[i]
         line[field] = ":".join(geno1)
         # add GT
-        concensus_gt = get_concensus_gt(geno1[0], geno2[0], geno3[0])
-
-        # print ("for dv:" + geno1[0] + " " + geno2[0] + " " + geno3[0])
-        dv_priority_gt = get_dv_priority_gt(geno1[0], geno2[0], geno3[0])
-        # print ("dv_priority_gt:" + dv_priority_gt)
-
         line[field] = line[field] + ":" + concensus_gt + ":" + dv_priority_gt
 
     # add field to format
-    line[start1 - 1] = line[start1 - 1] + ":concensus_GT:dv_priority_GT"
+
+    line[frmt] = line[frmt] + ":concensus_GT:dv_priority_GT"
 
     return line[0:end1]
 
@@ -334,7 +335,6 @@ def add_headers(ts, ver, scriptName, cmdString):
         prov1,
         prov2,
     ]
-
 
 
 from contextlib import contextmanager

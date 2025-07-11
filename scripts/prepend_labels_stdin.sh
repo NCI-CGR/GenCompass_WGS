@@ -1,26 +1,17 @@
 #!/bin/bash
 
-# Usage: ./prepend_INFO_labels_variant.sh <vcf_without_headers> <caller_label>
+# Usage: ./prepend_INFO_labels_variant.sh <caller_label>
 #
-
-# Returns, uncompressed:
-#   1. a variant file where all input fields (;-delimited)
-#   and format fields (:-delimited) are prepended with the caller
-#   label (e.g. AF=123; becomes HC_AF=123;), and
-# Note that the GT field is duplicated.  The first entry is left
-# as "GT"; the second is prepended with the caller label ("HC_GT").
-# This allows bcftools merge to function as intended.
+# Takes input from stdin and prepends the caller label to INFO and FORMAT fields.
+# It also duplicates the GT field, prepending it with the caller label (e.g. "HC_GT").
 
 set -euo pipefail
 
-inFile=$1
-caller=$2
+# Get the caller label from the second argument
+caller=$1
 
-inFileName="${inFile##*/}"
-outFile="prepended.${inFileName}"
-
+# Process input from stdin using awk
 awk -v caller="${caller}" 'BEGIN{FS=OFS="\t"} {
-
 
     # Check if the line starts with "#" (header line)
     if ($0 ~ /^#/) {
@@ -76,4 +67,4 @@ function join(arr, sep) {
     str = arr[1];
     for (i = 2; i in arr; i++) str = str sep arr[i];
     return str;
-}' "${inFile}"
+}' 

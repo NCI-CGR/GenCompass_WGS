@@ -61,7 +61,7 @@
 
 
 
-FROM ubuntu:23.10
+FROM ubuntu:24.10
 
 RUN apt-get update \
     && apt-get install -y procps build-essential \
@@ -103,7 +103,7 @@ RUN apt-get clean -y && rm -rf /var/lib/apt/lists/*
 ENV CONDAPATH=/usr/local/bin/miniconda3
 ENV PATH=$CONDAPATH/bin:$PATH
 
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py312_24.5.0-0-Linux-x86_64.sh \
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py312_24.9.2-0-Linux-x86_64.sh \
     && bash ./Miniconda3*.sh -b -p $CONDAPATH \
     && rm Miniconda3*.sh
 
@@ -114,24 +114,24 @@ RUN unzip awscliv2.zip
 RUN ./aws/install
 
 
-RUN conda install -c bioconda -c conda-forge \
+RUN conda install -c conda-forge -c bioconda \
+    numpy==2.1.3 \
+    pandas==2.2.3 \
+    xlsxwriter==3.2.0 \
+    openpyxl==3.1.5 \
+    python-dateutil==2.9.0 \
+    cryptography==44.0.0 \
+    click==8.1.7 \
+    dask==2024.12.0 \
     bedtools==2.31.1 \
     pysam==0.22.1 \
     htslib==1.21 \
     samtools==1.21 \
-    bcftools==1.21
+    bcftools==1.21 \
+    python-duckdb==1.1.3
 
 
-
-RUN conda install -c conda-forge \
-    numpy==2.0.0 \
-    pandas==2.2.2 \
-    xlsxwriter==3.1.9 \
-    openpyxl==3.1.4 \
-    python-dateutil==2.9.0 \
-    cryptography==42.0.8 \
-    click==8.1.7 \
-    && conda clean -afy
+RUN conda clean -afy
 
 
 # Copy additional scripts from bin and add to PATH
