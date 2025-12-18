@@ -209,8 +209,8 @@ task splitNormalizeLabelStrelka {
         #*********************************************
         # Update header
         #*********************************************
-        bcftools view --header-only --no-update ~{vcf} -o header.txt
-        sed -i 's\^##FORMAT=<ID=AD,Number=.\##FORMAT=<ID=AD,Number=R\g' header.txt
+        # bcftools view --header-only --no-update ~{vcf} -o header.txt
+        # sed -i 's\^##FORMAT=<ID=AD,Number=.\##FORMAT=<ID=AD,Number=R\g' header.txt
 
         #*********************************************
         # Normalize
@@ -220,15 +220,18 @@ task splitNormalizeLabelStrelka {
         #   - filter min allele count 1
         #*********************************************
         echo "Normalizing"
-        bcftools reheader --header header.txt ~{vcf} --threads ~{nThreads} -o reheaded.vcf
-        bcftools index reheaded.vcf  # optional but recommended if compressed
+        # bcftools reheader --header header.txt ~{vcf} --threads ~{nThreads} -o reheaded.vcf
+        # bcftools index reheaded.vcf  # optional but recommended if compressed
 
 
-        bcftools filter --threads ~{nThreads} --regions ~{interval} -Ou reheaded.vcf | \
+        bcftools filter --threads ~{nThreads} --regions ~{interval} -Ou ~{vcf} | \
         bcftools norm -f ~{reference.fasta} -m - --threads ~{nThreads} -Ou | \
-        bcftools view --min-ac 1 --threads ~{nThreads}  -Ov -o normalized.vcf
+        bcftools view --min-ac 1 --threads ~{nThreads} -Ov  | \
+        sed -e 's/ID=AD,Number=./ID=AD,Number=R/' \
+            -e 's/ID=ADF,Number=./ID=ADF,Number=R/' \
+            -e 's/ID=ADR,Number=./ID=ADR,Number=R/' > normalized.vcf
 
-        rm reheaded.vcf
+        # rm reheaded.vcf
 
         #*********************************************
         # Label vcf with caller
@@ -499,11 +502,12 @@ task concatSplitIntervals {
     command <<<
         set -euxo pipefail
         mkdir -p ~{oDir} 
-        bcftools concat --threads ~{nThreads} --write-index -Oz -o ~{oDir}/~{oFileVCF} ~{sep=' ' harmonizedSplitVCF}
+        bcftools concat --threads ~{nThreads} -Oz -o ~{oDir}/~{oFileVCF} ~{sep=' ' harmonizedSplitVCF}
+        tabix -p vcf -@ ~{nThreads} ~{oDir}/~{oFileVCF}
     >>>
     output{
         File harmonizedMergedVCF="~{oDir}/~{oFileVCF}"
-        File harmonizedMergedVCFI="~{oDir}/~{oFileVCF}.csi"
+        File harmonizedMergedVCFI="~{oDir}/~{oFileVCF}.tbi"
     }
     runtime {
         docker : docker
