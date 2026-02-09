@@ -139,12 +139,25 @@ common ancestor (LCA) of all genomes known to contain a given $k$-mer.
 > GLnexus (GL, Genotype Likelihood), a system for joint variant calling designed to scale up to the largest foreseeable human cohorts. GLnexus combines scalable joint calling algorithms with a persistent database that grows efficiently as additional participants are sequenced.
 >
 ### Harmonize
+### Harmonize
 >
-> Several ensemble genotypes (GT) fields are generated
+> Several ensemble genotypes (GT) fields are generated.
 >
-> - ensembled GT in the final output (GT): If all 3 callers have calls: any of the two callers are concordant: GT is set to that concordant GT; none are concordant: GT is set to ./. If only 2 callers have calls: they are concordant: GT is set to that concordant GT; they are not concordant: GT is set to ./. If only one caller has call, it’s set to that GT
-> - Majority concensus voting (concensus_GT): If only one caller has call, it’s set to ./.
-> - DV priority voting (dv_priority_GT): If there is DV call, set to that GT If there’s no DV call: HC and strelka2 calls the same genotype, GT is set to that genotype Otherwise GT is set to ./.
+> * ensembled GT in the final output (GT):
+>    * If all 3 callers have calls: 
+>        * any of the two callers are concordant:  GT is set to that concordant GT; 
+>        * none are concordant: GT is set to ./.
+>    * If only 2 callers have calls:
+>        * they are concordant: GT is set to that concordant GT;
+>        * they are not concordant: GT is set to ./.
+>    * If only one caller has call, it's set to that GT
+> * Majority consensus voting (concensus_GT):
+>    * If only one caller has call, it's set to ./.
+> * DV priority voting (dv_priority_GT):
+>    * If there is DV call, set to that GT
+>    * If there's no DV call:
+>        * HC and strelka2 calls the same genotype, GT is set to that genotype
+>        * Otherwise GT is set to ./.
 
 ## Running GenCompass
 
