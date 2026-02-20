@@ -1,0 +1,50 @@
+{
+    "Mapping.sampleID": "{{sample_id}}",
+    "Mapping.referenceTarball": "{{reference_bundle}}/Homo_sapiens_assembly38/Homo_sapiens_assembly38.fasta.tar",
+    "Mapping.manifest": "{{manifest}}",
+    
+    "Mapping.sampleFastqFiles": "{{array - sample fastq files}}",
+
+    "Mapping.runCollectMultipleMetrics": false,
+    "Mapping.runBamMetrics": true,
+    "Mapping.runVerifyBamID": true,
+    "Mapping.runSamtoolsCoverage": true,
+    "Mapping.runKraken": true,
+    "Mapping.runSomalier": true,
+    "Mapping.fq2bamKnownSites": "{{reference_bundle}}/fq2bam_known_sites/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+    "Mapping.fq2bamUseBestPractices": true,
+    "Mapping.fq2bamToolOptions": "--gpusort --gpuwrite --optical-duplicate-pixel-distance 2500",
+
+
+    "Mapping.kraken2Confidence": 0.2,
+
+    "Mapping.gencompassDocker": "cgrlab/gencompass:v1.4",
+    "Mapping.parabricksDocker": "nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1",
+    "Mapping.verifybamidDocker": "cgrlab/verifybamid:v2.0.1",
+    "Mapping.krakenDocker": "cgrlab/kraken:v2.17.1",
+    "Mapping.somalierDocker": "cgrlab/somalier:v0.3.0",
+
+    "Mapping.fq2bamRuntimeAttributes": {
+        "memoryGiB" : 250,
+        "cpuCount" : 32,
+        "acceleratorType" : "a100",
+        "acceleratorCount": 1,
+        "diskGiB" : 0,
+        "queue": "gpuq",
+        "hpcQueue": "gpuq"
+    },
+    "Mapping.bammetricsRuntimeAttributes": {
+        "memoryGiB" : 250,
+        "cpuCount" : 32,
+        "acceleratorType" : "a100",
+        "acceleratorCount": 1,
+        "diskGiB" : 0,
+        "queue": "gpuq",
+        "hpcQueue": "gpuq"
+    },
+    "Mapping.verifybamidRuntimeAttributes": {
+                    "memoryGiB" : 64,
+                    "cpuCount" : 8,
+                    "diskGiB" : 0
+    }
+}
