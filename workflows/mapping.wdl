@@ -111,7 +111,7 @@ workflow Mapping {
                 sampleID=sampleID,
                 docker=gencompassDocker
         }
-        Array[File] preparedSampleFastqFiles = read_lines(prepare_fq2bam_list.sampleFastqFiles)
+        Map[String, File] fastqMap = read_json(prepare_fq2bam_list.fastqMap)
 
         if(defined(fq2bamKnownSites)){
             File fq2bamKnownSitesTBI=select_first([fq2bamKnownSites])+".tbi"
@@ -120,7 +120,7 @@ workflow Mapping {
         call multifq2bam as fq2bam {
             input:
                 fastqReadGroupList=prepare_fq2bam_list.fq2bamList,
-                pairedReads=preparedSampleFastqFiles,
+                fastqMap = fastqMap,
                 sampleID=sampleID,
                 inputRefTarball=referenceTarball,
                 inputKnownSitesVCF=fq2bamKnownSites,
@@ -211,6 +211,7 @@ workflow Mapping {
     if(runSomalier){
         call somalier_extract {
             input:
+                sampleID=sampleID,
                 bamFile=mappedBamQC,
                 referenceTarball=referenceTarball,
                 sites=select_first([somalierExtractSites]),
@@ -222,9 +223,12 @@ workflow Mapping {
     
     output{
         BamFile? fq2bamBAM=fq2bam.bamFile
+        
         # File fq2bamBAI=fq2bam.outputBAI
         File? fq2bamBQSR=fq2bam.outputBQSR
         File? fq2bamMetrics = fq2bam.metrics
+        Array[File]? fq2bamMultipleMetrics = fq2bam.multipleMetrics
+
         Array[File]? multipleMetrics = collectmultiplemetrics.multipleMetrics
         File? bammetricsFile = bammetrics.oMetrics
         File? coverage = samtools_coverage.coverage
@@ -240,106 +244,112 @@ workflow Mapping {
 
 # PREPARE FQ2BAM LIST WITH READ GROUP INFO
 task prepare_fq2bam_list {
-    input{
+    input {
         File fastqFileList
         File manifest
         String sampleID
         String docker="cgrlab/gencompass@sha256:ab81377e6c793d8bbf5b44bc1ea4e5a4b1bec943b7fb0691fd02ca9cfc64c21a"
-        
-        String hpcQueue="norm"
+        String hpcQueue="cgrq"
         Int gbRAM=2
         Int diskGB=0
         Int runtimeMinutes=15
         Int maxPreemptAttempts=3
     }
-
-    String oDir = "fq2bam/~{sampleID}"
     
-    Int autoDiskGB = if diskGB < 1 then ceil(2.0 * size(manifest,  "GiB"))   + 5 else diskGB
-
+    String oDir = "fq2bam/~{sampleID}"
+    Int autoDiskGB = if diskGB < 1 then ceil(2.0 * size(manifest, "GiB")) + 5 else diskGB
+    
     command {
         set -euxo pipefail
         mkdir -p ~{oDir}
-        
-        prepare_fq2bam_list.py \
-        --manifest ~{manifest} \
-        --fastq_files ~{fastqFileList} \
-        --sample ~{sampleID} \
-        --output_directory ~{oDir}
+        prepare_fq2bam_list_cgr.py \
+            --manifest ~{manifest} \
+            --fastq_files ~{fastqFileList} \
+            --analysis_id ~{sampleID} \
+            --output_directory ~{oDir}
     }
+    
     output {
         File fq2bamList = "~{oDir}/~{sampleID}.fq2bam_list.txt"
+        File fastqMap = "~{oDir}/~{sampleID}_fastq_map.json"
         File sampleFastqFiles = "~{oDir}/~{sampleID}_fastq_files.txt"
     }
+    
     runtime {
         docker: docker
-        disks : "local-disk ~{autoDiskGB} SSD"
-        cpu : 2
-        memory : "~{gbRAM} GiB"
-        hpcMemory : gbRAM
-        hpcQueue : "~{hpcQueue}"
-        hpcRuntimeMinutes : runtimeMinutes
-        zones : ["us-central1-a", "us-central1-b", "us-central1-c"]
-        preemptible : maxPreemptAttempts
+        disks: "local-disk ~{autoDiskGB} SSD"
+        cpu: 2
+        memory: "~{gbRAM} GiB"
+        hpcMemory: gbRAM
+        hpcQueue: "~{hpcQueue}"
+        hpcRuntimeMinutes: runtimeMinutes
+        zones: ["us-central1-a", "us-central1-b", "us-central1-c"]
+        preemptible: maxPreemptAttempts
     }
 }
 
 # PARABRICKS FQ2BAM
 task multifq2bam {
     input {
-
-        Array[File] pairedReads
+        Map[String, File] fastqMap
         File fastqReadGroupList
-
         File inputRefTarball
         String sampleID = "SAMPLE"
-
         File? inputKnownSitesVCF
         File? inputKnownSitesTBI
         String docker = "nvcr.io/nvidia/clara/clara-parabricks:4.0.1-1"
         Boolean useBestPractices = false
         String fq2bamToolOptions="--gpusort --gpuwrite --low-memory"
-
         RuntimeAttributes? runtimeAttributes
-
         String tmpDir = "tmp_fq2bam"
     }
-
+    
     RuntimeAttributes defaultRuntimeAttributes = {
-                    "memoryGiB" : 192,
-                    "cpuCount" : 48,
-                    "acceleratorType" : "nvidia-tesla-a10g",
-                    "acceleratorCount": 4,
-                    "diskGiB" : 0,
-                    "diskType" : "SSD",
-                    "runtimeMinutes": 600,
-                    "maxPreemptAttempts": 3,
-                    "hpcQueue": "gpu",
-                    "acceleratorDriverVersion": "525.60.13"
-        }
+        "memoryGiB": 192,
+        "cpuCount": 48,
+        "acceleratorType": "nvidia-tesla-a10g",
+        "acceleratorCount": 4,
+        "diskGiB": 0,
+        "diskType": "SSD",
+        "runtimeMinutes": 600,
+        "maxPreemptAttempts": 3,
+        "hpcQueue": "gpu",
+        "acceleratorDriverVersion": "525.60.13"
+    }
     
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
-
-    Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) < 1 then ceil(4.0 * size(pairedReads,  "GB")) + ceil(4.0 * size(inputRefTarball,  "GB")) + ceil(4.0 * size(inputKnownSitesVCF,  "GB")) + 50 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
-    String best_practice_args = if useBestPractices then "--bwa-options \" -Y -K 100000000 \" " else ""
+    Int autoDiskGB = select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
     
+    String best_practice_args = if useBestPractices then "--bwa-options \" -Y -K 100000000 \" " else ""
     String ref = basename(inputRefTarball, ".tar")
     String oDir = "fq2bam/~{sampleID}"
-
+    String cmmODir = "mapping_qc/collectmultiplemetrics/~{sampleID}"
+    String dupMetricsOdir = "mapping_qc/duplication_metrics"
     String bqsrFilename = "~{oDir}/~{sampleID}.BQSR-REPORT.txt"
     String bamFilename = "~{oDir}/~{sampleID}.bam"
-    String metricsFilename="~{oDir}/~{sampleID}.metrics.txt"
+    String metricsFilename = "~{dupMetricsOdir}/~{sampleID}.duplication_metrics.txt"
     
-
-
-    command {
+    command <<<
         set -euxo pipefail
-
+        
         mkdir -p ~{oDir}
-        cp ~{sep=" " pairedReads} ./
+        mkdir -p ~{cmmODir}
+        mkdir -p ~{dupMetricsOdir}
+        mkdir -p ~{tmpDir}
 
-        mkdir -p ~{tmpDir} && \
-        tar xf ~{inputRefTarball} && \
+        
+        # Copy fastq files to their mapped locations using the map file
+        while IFS=$'\t' read -r dest_path source_file || [ -n "$dest_path" ]; do
+            dest_dir=$(dirname "$dest_path")
+            mkdir -p "$dest_dir"
+            cp "$source_file" "$dest_path"
+            echo "Copied $source_file -> $dest_path"
+        done < ~{write_map(fastqMap)}
+        
+        # Extract reference
+        tar xf ~{inputRefTarball}
+        
+        # Run fq2bam
         pbrun fq2bam \
             --tmp-dir ~{tmpDir} \
             --in-fq-list ~{fastqReadGroupList} \
@@ -347,12 +357,15 @@ task multifq2bam {
             ~{"--knownSites " + inputKnownSitesVCF + " --out-recal-file " + bqsrFilename} \
             ~{best_practice_args} \
             --out-bam ~{bamFilename} \
-            --out-duplicate-metrics ~{metricsFilename}  \
+            --out-duplicate-metrics ~{metricsFilename} \
+            --out-qc-metrics-dir ~{cmmODir} \
             ~{fq2bamToolOptions}
-
+        
+        # Cleanup
         rm ~{ref}*
-        rm *.fastq.gz
-    }
+        rm -rf */*.fastq.gz
+    >>>
+    
 
     output {
         BamFile bamFile = {
@@ -363,6 +376,32 @@ task multifq2bam {
         # File outputBAI = "~{bamFilename}.bai"
         File? outputBQSR = "~{bqsrFilename}"
         File metrics = "~{metricsFilename}"
+
+        Array[File] multipleMetrics = [
+             "~{cmmODir}/alignment.txt",
+            "~{cmmODir}/base_distribution_by_cycle.pdf",
+            "~{cmmODir}/base_distribution_by_cycle.png",
+            "~{cmmODir}/base_distribution_by_cycle.txt",
+            "~{cmmODir}/gcbias.pdf",
+            "~{cmmODir}/gcbias_0.png",
+            "~{cmmODir}/gcbias_detail.txt",
+            "~{cmmODir}/gcbias_summary.txt",
+            "~{cmmODir}/insert_size.pdf",
+            "~{cmmODir}/insert_size.png",
+            "~{cmmODir}/insert_size.txt",
+            "~{cmmODir}/mean_quality_by_cycle.pdf",
+            "~{cmmODir}/mean_quality_by_cycle.png",
+            "~{cmmODir}/mean_quality_by_cycle.txt",
+            "~{cmmODir}/quality_yield.txt",
+            "~{cmmODir}/qualityscore.pdf",
+            "~{cmmODir}/qualityscore.png",
+            "~{cmmODir}/qualityscore.txt",
+            "~{cmmODir}/sequencingArtifact.bait_bias_detail_metrics.txt",
+            "~{cmmODir}/sequencingArtifact.bait_bias_summary_metrics.txt",
+            "~{cmmODir}/sequencingArtifact.error_summary_metrics.txt",
+            "~{cmmODir}/sequencingArtifact.pre_adapter_detail_metrics.txt",
+            "~{cmmODir}/sequencingArtifact.pre_adapter_summary_metrics.txt"
+        ]
         
     }
 
@@ -406,7 +445,7 @@ task extract_unmapped_reads {
                     "diskGiB" : 0,
                     "runtimeMinutes": 60,
                     "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
+                    "hpcQueue": "cgrq",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
@@ -462,7 +501,7 @@ task kraken2 {
                     "diskGiB" : 0,
                     "runtimeMinutes": 60,
                     "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
+                    "hpcQueue": "cgrq",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
@@ -727,7 +766,7 @@ task samtools_coverage {
                     "diskGiB" : 0,
                     "runtimeMinutes": 60,
                     "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
+                    "hpcQueue": "cgrq",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
@@ -767,6 +806,7 @@ task samtools_coverage {
 task somalier_extract {
     input{
         BamFile bamFile
+        String sampleID=""
         # File bamFile
         # File bamIndex
         File sites
@@ -783,13 +823,13 @@ task somalier_extract {
                     "diskGiB" : 0,
                     "runtimeMinutes": 60,
                     "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
+                    "hpcQueue": "cgrq",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
 
     String oDir = "mapping_qc/somalier/extract"
-    String autoSampleID = basename(bamFile.bam, ".bam")
+    String autoSampleID = if sampleID == "" then basename(basename(bamFile.bam, ".bam"), ".cram") else sampleID
     Int autoDiskGB = if select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB])  < 1 then ceil(2.0 * size(bamFile.bam,  "GB")) + ceil(size(sites,  "GB"))   + ceil(2.0 *size(referenceTarball,  "GB")) + 50 else select_first([runtimeAttributesOverride.diskGiB, defaultRuntimeAttributes.diskGiB]) 
     String localTarball = basename(referenceTarball)
     String ref = basename(referenceTarball, ".tar")
@@ -800,7 +840,9 @@ task somalier_extract {
         ln -s ~{referenceTarball} ${localTarball} && \
         time tar xvf ~{localTarball}
 
-        somalier extract --sites ~{sites} -d ~{oDir} -f ~{ref}  ~{bamFile.bam}
+        somalier extract --sites ~{sites} -d ~{oDir} -f ~{ref} --sample-prefix ${autoSampleID} ~{bamFile.bam}
+
+        mv ${oDir}/*.somalier ${oDir}/${autoSampleID}.somalier
 
         rm ~{ref}*
     }
@@ -841,7 +883,7 @@ task somalier_relate {
                     "diskGiB" : 0,
                     "runtimeMinutes": 60,
                     "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
+                    "hpcQueue": "cgrq",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
@@ -903,7 +945,7 @@ task somalier_ancestry {
                     "diskGiB" : 0,
                     "runtimeMinutes": 60,
                     "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
+                    "hpcQueue": "cgrq",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])
@@ -962,7 +1004,7 @@ task verifybamid {
                     "diskGiB" : 0,
                     "runtimeMinutes": 60,
                     "maxPreemptAttempts": 3,
-                    "hpcQueue": "norm",
+                    "hpcQueue": "cgrq",
                     "diskType" : "SSD"
     }
     RuntimeAttributes runtimeAttributesOverride = select_first([runtimeAttributes, defaultRuntimeAttributes])

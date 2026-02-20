@@ -61,7 +61,7 @@
 
 
 
-FROM ubuntu:24.10
+FROM ubuntu:25.10
 
 RUN apt-get update \
     && apt-get install -y procps build-essential \

@@ -8,8 +8,8 @@ class Manifest:
     def __init__(self, manifest_file: str) -> None:
         self.manifest_file = manifest_file
         self.manifest = read_table(self.manifest_file)
-        self.sample_id_column = self.get_column_match('Sample ID')
-        self.sample_run_id_column = self.get_column_match('Sample Run ID')
+        self.sample_id_column = self.get_column_match('ANALYSIS ID')
+        self.sample_run_id_column = self.get_column_match('CGF ID')
         if self.sample_run_id_column is None:
             self.sample_run_id_column = self.sample_id_column
 

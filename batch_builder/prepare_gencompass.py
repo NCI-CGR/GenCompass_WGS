@@ -25,7 +25,7 @@ import helpers
 #   premap_report    Premap report cromwell swarm script and input json...
 #   variant_calling  Variant Calling cromwell swarm script and input json...
 
-DEFAULT_SWARM_INPUT_TEMPLATE=['#SWARM --threads-per-process 8', '#SWARM --gb-per-process 25',  '#SWARM --time 4:00:00', '#SWARM --module cromwell,singularity', ]
+DEFAULT_SWARM_INPUT_TEMPLATE=['#SWARM --threads-per-process 8', '#SWARM --gb-per-process 25',  '#SWARM --time 24:00:00', '#SWARM --module cromwell,singularity', ]
 
 DEFAULT_TEMPLATE_DIRECTORY = os.environ.get('GENCOMPASS_INPUT_TEMPLATE_DIRECTORY', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'))
 DEFAULT_PROJECT_PARAMETERS = os.environ.get('GENCOMPASS_PROJECT_PARAMETERS', os.path.join(DEFAULT_TEMPLATE_DIRECTORY, 'project_parameters.json'))
@@ -201,51 +201,93 @@ def premap(project_parameters,input_template):
               help='Input Template - JSON file',
               default=DEFAULT_MAPPING_INPUT_TEMPLATE,
               show_default=DEFAULT_MAPPING_INPUT_TEMPLATE)
-def mapping(project_parameters,input_template):
-
+@click.option('--skip-premap',
+              is_flag=True,
+              help='Skip premap step and use existing fastq locations')
+def mapping(project_parameters, input_template, skip_premap):
+    """Prepare Mapping workflow inputs and swarm script."""
+    
+    # Constants
     wdl_filename = 'mapping.wdl'
-    name='mapping'
+    name = 'mapping'
+    
+    # Load configuration files
     project_parameters = json.load(open(project_parameters))
-    working_dir = project_parameters['working_directory'] if 'working_directory' in project_parameters.keys() else './'
-    project_parameters['working_directory'] = working_dir
     input_template = json.load(open(input_template))
-
+    
+    # Set working directory
+    working_dir = project_parameters.get('working_directory', './')
+    project_parameters['working_directory'] = working_dir
+    
+    # Load manifest and create fastq table
     manifest = Manifest(project_parameters['manifest'])
-    fastq_table = create_fastq_files_table(project_parameters['fastq_files'], manifest) 
-
-    def get_fastp_result_loc(sample: str, original_fastq_filename: str):
-        lane_id = helpers.extract_sample_lane_id(original_fastq_filename)
-        paired_end = helpers.extract_sample_paired_end(original_fastq_filename)
-        fastp_fastq_path = os.path.join(project_parameters['results_directory'], f'premap_qc/fastp/{sample}/{lane_id}_{paired_end}_fastp.fastq.gz')
-        return fastp_fastq_path
-    fastq_table['fastp_fastq_path'] = fastq_table.apply(lambda row: get_fastp_result_loc(row['Sample ID'], row['Fastq Location']), axis = 1)
-
+    fastq_table = create_fastq_files_table(project_parameters['fastq_files'], manifest)
+    
+    # Add fastp paths only if not skipping premap
+    if not skip_premap:
+        def get_fastp_result_loc(sample: str, original_fastq_filename: str):
+            lane_id = helpers.extract_sample_lane_id(original_fastq_filename)
+            paired_end = helpers.extract_sample_paired_end(original_fastq_filename)
+            fastp_fastq_path = os.path.join(
+                project_parameters['results_directory'], 
+                f'premap_qc/fastp/{sample}/{lane_id}_{paired_end}_fastp.fastq.gz'
+            )
+            return fastp_fastq_path
+        
+        fastq_table['fastp_fastq_path'] = fastq_table.apply(
+            lambda row: get_fastp_result_loc(row['Sample ID'], row['Fastq Location']), 
+            axis=1
+        )
+    
+    # Update template with project data
     input_template = update_template_with_project_data(input_template, project_parameters)
-    # copy wdl file to working directory
-    wdl_abs_path = '/'.join((os.path.abspath(__file__)).split('/')[:-2]) + f'/workflows/{wdl_filename}'
-    working_workflow_directory = os.path.join(project_parameters['working_directory'], 'workflows')
+    
+    # Copy WDL file to working directory
+    wdl_abs_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        'workflows',
+        wdl_filename
+    )
+    working_workflow_directory = os.path.join(working_dir, 'workflows')
     os.makedirs(working_workflow_directory, exist_ok=True)
-
     shutil.copy(wdl_abs_path, working_workflow_directory)
-    # create and save options file
+    
+    # Create and save options file
     build_cromwell_options(project_parameters, name)
-    # create and save sample level inputs
-    input_params_dir= os.path.join(f"{project_parameters['working_directory']}","inputs", f"{name}_inputs")
+    
+    # Create sample-level inputs
+    input_params_dir = os.path.join(working_dir, 'inputs', f'{name}_inputs')
     os.makedirs(input_params_dir, exist_ok=True)
+    
     samples = get_sample_ids(project_parameters)
+    
     for sample in samples:
         sample = sample.strip()
         sample_input = input_template.copy()
+        
+        # Replace sample_id placeholder
         for key, value in sample_input.items():
-            if '{{' + 'sample_id' + '}}' in str(value):
-                sample_input[key] = value.replace('{{' + 'sample_id' + '}}', sample)
-
-        fastp_fastq_files = fastq_table[fastq_table['Sample ID'] == sample]
-        sample_fastq_files = list(fastp_fastq_files['fastp_fastq_path'].unique())
-        sample_input['Mapping.sampleFastqFiles'] = sample_fastq_files
-
-        with open(os.path.join(input_params_dir, f"{sample}_{name}_input.json"), "w") as ofile:
+            if '{{sample_id}}' in str(value):
+                sample_input[key] = value.replace('{{sample_id}}', sample)
+        
+        # Handle fastq files based on skip_premap flag
+        if skip_premap:
+            # Remove sampleFastqFiles and use sampleFastqLocations instead
+            sample_input.pop('Mapping.sampleFastqFiles', None)
+            sample_input['Mapping.sampleFastqLocations'] = project_parameters['fastq_files']
+        else:
+            # Use fastp output files
+            sample_fastq_files = list(
+                fastq_table[fastq_table['Sample ID'] == sample]['fastp_fastq_path'].unique()
+            )
+            sample_input['Mapping.sampleFastqFiles'] = sample_fastq_files
+        
+        # Write sample input JSON
+        output_path = os.path.join(input_params_dir, f'{sample}_{name}_input.json')
+        with open(output_path, 'w') as ofile:
             json.dump(sample_input, ofile, indent=4)
+    
+    # Create swarm script
     create_sample_swarm_script(project_parameters, name, wdl_filename)
 
 

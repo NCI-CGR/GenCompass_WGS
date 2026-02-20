@@ -1,5 +1,5 @@
 # ccbr_kraken_v2.1.3 Dockerfile (v0.0.1)
-FROM ubuntu:23.04
+FROM ubuntu:25.10
 
 # Non-root user
 ARG USERNAME=docker-user
@@ -40,7 +40,7 @@ RUN apt-get clean && \
 WORKDIR /opt2
 
 # Get latest kraken release (v2.1.3): https://github.com/DerrickWood/kraken2/releases 
-ENV KRAKEN_VERSION="2.1.3"
+ENV KRAKEN_VERSION="2.17.1"
 RUN wget https://github.com/DerrickWood/kraken2/archive/v${KRAKEN_VERSION}.tar.gz && \
 	tar -xzf v${KRAKEN_VERSION}.tar.gz && \
 	rm v${KRAKEN_VERSION}.tar.gz && \

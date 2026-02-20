@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 ubuntu:23.04
+FROM ubuntu:25.10
 
 
 # user environmental variables
@@ -21,7 +21,7 @@ RUN apt-get update && apt-get upgrade -y
 
 RUN mkdir /opt/bin
 
-ENV SOMALIER_VESION v0.2.16
+ENV SOMALIER_VESION v0.3.0
 RUN cd /opt/bin \
     && wget https://github.com/brentp/somalier/releases/download/${SOMALIER_VESION}/somalier
 

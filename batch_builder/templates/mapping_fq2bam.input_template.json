@@ -13,22 +13,38 @@
     "Mapping.runSomalier": false,
     "Mapping.fq2bamKnownSites": "{{reference_bundle}}/fq2bam_known_sites/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
     "Mapping.fq2bamUseBestPractices": false,
-    "Mapping.fq2bamToolOptions": "--gpusort --gpuwrite",
+    "Mapping.fq2bamToolOptions": "--gpusort --gpuwrite --optical-duplicate-pixel-distance 2500",
 
 
     "Mapping.kraken2Confidence": 0.2,
 
-    "Mapping.gencompassDocker": "cgrlab/gencompass:v1.1",
-    "Mapping.parabricksDocker": "cgrlab/clara-parabricks:4.3.0-1",
+    "Mapping.gencompassDocker": "cgrlab/gencompass:v1.4",
+    "Mapping.parabricksDocker": "nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1",
     "Mapping.verifybamidDocker": "cgrlab/verifybamid:v2.0.1",
-    "Mapping.krakenDocker": "cgrlab/kraken:v2.1.3",
-    "Mapping.somalierDocker": "cgrlab/somalier:v0.2.16",
+    "Mapping.krakenDocker": "cgrlab/kraken:v2.17.1",
+    "Mapping.somalierDocker": "cgrlab/somalier:v0.3.0",
 
     "Mapping.fq2bamRuntimeAttributes": {
         "memoryGiB" : 250,
-        "cpuCount" : 48,
-        "acceleratorType" : "v100x",
-        "acceleratorCount": 2,
-        "diskGiB" : 0
+        "cpuCount" : 32,
+        "acceleratorType" : "a100",
+        "acceleratorCount": 1,
+        "diskGiB" : 0,
+        "queue": "gpuq",
+        "hpcQueue": "gpuq"
+    },
+    "Mapping.bammetricsRuntimeAttributes": {
+        "memoryGiB" : 250,
+        "cpuCount" : 32,
+        "acceleratorType" : "a100",
+        "acceleratorCount": 1,
+        "diskGiB" : 0,
+        "queue": "gpuq",
+        "hpcQueue": "gpuq"
+    },
+    "Mapping.verifybamidRuntimeAttributes": {
+                    "memoryGiB" : 64,
+                    "cpuCount" : 8,
+                    "diskGiB" : 0
     }
 }
